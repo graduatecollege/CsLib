@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AssemblyName>Grad.CsLib</AssemblyName>
+        <RootNamespace>Grad.CsLib</RootNamespace>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Title>Grad CsLib</Title>
+        <Authors>marvel@illinois.edu</Authors>
+        <Description>Common code for Graduate College C# web applications.</Description>
+        <Copyright>University of Illinois Board of Trustees</Copyright>
+        <Version>1.0.0</Version>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="FastEndpoints" Version="6.1.0" />
+        <PackageReference Include="FastEndpoints.ClientGen.Kiota" Version="6.1.0" />
+        <PackageReference Include="FastEndpoints.Generator" Version="6.1.0">
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="FastEndpoints.Security" Version="6.1.0" />
+        <PackageReference Include="FastEndpoints.Swagger" Version="6.1.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.5" NoWarn="NU1605" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="9.0.5" NoWarn="NU1605" />
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.5" />
+        <PackageReference Include="Microsoft.Identity.Web" Version="3.9.2" />
+        <PackageReference Include="Microsoft.Identity.Web.DownstreamApi" Version="3.9.2" />
+        <PackageReference Include="Microsoft.OpenApi.ApiManifest" Version="2.0.0-preview4" />
+        <PackageReference Include="Microsoft.OpenApi.Kiota.Builder" Version="1.26.1" />
+        <PackageReference Include="Riok.Mapperly" Version="4.2.1" />
+    </ItemGroup>
+</Project>

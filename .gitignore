@@ -1,0 +1,24 @@
+bin/
+obj/
+/packages/
+riderModule.iml
+/_ReSharper.Caches/
+appsettings.*.json
+*.DotSettings.user
+# Common IntelliJ Platform excludes
+
+*.suo
+*.user
+.vs/
+[Bb]in/
+[Oo]bj/
+_UpgradeReport_Files/
+[Pp]ackages/
+.idea
+
+Thumbs.db
+Desktop.ini
+.DS_Store
+/spec.zip
+
+*.private.env.json
