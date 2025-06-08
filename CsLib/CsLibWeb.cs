@@ -1,5 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 using FastEndpoints;
+using FastEndpoints.Security;
 using FastEndpoints.Swagger;
 using Grad.CsLib.Options;
 using Microsoft.AspNetCore.Builder;
@@ -88,6 +89,17 @@ public static class CsLibWeb
             }, options => { builder.Configuration.Bind("AzureAd", options); });
         
         builder.Services.AddAuthorization();
+        builder.Configuration[AuthKey] = "true";
+
+        return builder;
+    }
+
+    public static WebApplicationBuilder AddNoAuth(this WebApplicationBuilder builder)
+    {
+        builder.Services
+            .AddAuthenticationJwtBearer(s => s.SigningKey = "this is totally insecure")
+            .AddAuthorization();
+
         builder.Configuration[AuthKey] = "true";
 
         return builder;
