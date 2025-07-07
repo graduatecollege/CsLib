@@ -94,6 +94,10 @@ public static class CsLibWeb
         return builder;
     }
 
+    /// <summary>
+    /// APIs that don't require authentication still need some form of authentication. This adds an insecure
+    /// JWT Bearer authentication scheme.
+    /// </summary>
     public static WebApplicationBuilder AddNoAuth(this WebApplicationBuilder builder)
     {
         builder.Services
@@ -108,7 +112,8 @@ public static class CsLibWeb
     /// <summary>
     /// Builds the WebApplication and configures middleware conditionally based on Add* calls.
     ///
-    /// Accepts an optional function to configure BindingOptions.
+    /// Accepts an optional function to configure BindingOptions, which you would typically
+    /// use to add source generated types.
     /// </summary>
     public static WebApplication BuildAndConfigureApp(this WebApplicationBuilder builder, Action<BindingOptions>? binding = null)
     {
