@@ -12,26 +12,26 @@
         <Authors>marvel@illinois.edu</Authors>
         <Description>Common code for Graduate College C# web applications.</Description>
         <Copyright>University of Illinois Board of Trustees</Copyright>
-        <Version>1.0.2</Version>
+        <Version>1.0.3</Version>
         <NoWarn>CS1591,CS8618,NU5104</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="FastEndpoints" Version="6.2.0" />
-        <PackageReference Include="FastEndpoints.ClientGen.Kiota" Version="6.2.0" />
-        <PackageReference Include="FastEndpoints.Generator" Version="6.2.0">
+        <PackageReference Include="FastEndpoints" Version="7.0.1" />
+        <PackageReference Include="FastEndpoints.ClientGen.Kiota" Version="7.0.1" />
+        <PackageReference Include="FastEndpoints.Generator" Version="7.0.1">
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="FastEndpoints.Security" Version="6.2.0" />
-        <PackageReference Include="FastEndpoints.Swagger" Version="6.2.0" />
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.6" NoWarn="NU1605" />
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="9.0.6" NoWarn="NU1605" />
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.6" />
-        <PackageReference Include="Microsoft.Identity.Web" Version="3.10.0" />
-        <PackageReference Include="Microsoft.Identity.Web.DownstreamApi" Version="3.10.0" />
+        <PackageReference Include="FastEndpoints.Security" Version="7.0.1" />
+        <PackageReference Include="FastEndpoints.Swagger" Version="7.0.1" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.7" NoWarn="NU1605" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="9.0.7" NoWarn="NU1605" />
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.7" />
+        <PackageReference Include="Microsoft.Identity.Web" Version="3.11.0" />
+        <PackageReference Include="Microsoft.Identity.Web.DownstreamApi" Version="3.11.0" />
         <PackageReference Include="Microsoft.OpenApi.ApiManifest" Version="2.0.0-preview5" />
-        <PackageReference Include="Microsoft.OpenApi.Kiota.Builder" Version="1.27.0" />
+        <PackageReference Include="Microsoft.OpenApi.Kiota.Builder" Version="1.28.0" />
         <PackageReference Include="Riok.Mapperly" Version="4.2.1" />
     </ItemGroup>
 </Project>
