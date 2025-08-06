@@ -2,6 +2,7 @@
 using FastEndpoints;
 using FastEndpoints.Security;
 using FastEndpoints.Swagger;
+using Grad.CsLib.Errors;
 using Grad.CsLib.Options;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -130,6 +131,10 @@ public static class CsLibWeb
                 c.Endpoints.ShortNames = true;
                 binding?.Invoke(c.Binding);
                 c.Serializer.Options.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+                c.Endpoints.Configurator = ep =>
+                {
+                    ep.PostProcessor<ExceptionProcessor>(Order.After);
+                };
             });
         }
 
