@@ -30,4 +30,11 @@ public static class GradValidators
             .Matches(@"^6\d{8}$")
             .WithMessage("{PropertyName} must be a 9-digit number starting with 6.");
     }
+    
+    public static IRuleBuilderOptions<T, string> MustBeValidDbIdentifier<T>(this IRuleBuilder<T, string> ruleBuilder)
+    {
+        return ruleBuilder
+            .Matches("^[a-zA-Z_][a-zA-Z0-9_]*$")
+            .WithMessage("{PropertyName} must be a valid database name containing only alphanumeric characters and underscores.");
+    }
 }

@@ -126,15 +126,12 @@ public static class CsLibWeb
         if (builder.Configuration[EndpointsKey] == "true")
         {
             app.MapHealthChecks("/healthz");
-            app.UseFastEndpoints(c =>
+            app.UseCsLibExceptionHandler()
+               .UseFastEndpoints(c =>
             {
                 c.Endpoints.ShortNames = true;
                 binding?.Invoke(c.Binding);
                 c.Serializer.Options.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-                c.Endpoints.Configurator = ep =>
-                {
-                    ep.PostProcessor<ExceptionProcessor>(Order.After);
-                };
             });
         }
 
@@ -157,11 +154,9 @@ public static class CsLibWeb
         
         if (app.Environment.IsDevelopment())
         {
-            app.UseDeveloperExceptionPage();
         }
         else
         {
-            app.UseExceptionHandler("/error");
             app.UseHsts();
         }
         
