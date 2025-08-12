@@ -12,7 +12,7 @@
         <Authors>marvel@illinois.edu</Authors>
         <Description>Common code for Graduate College C# web applications.</Description>
         <Copyright>University of Illinois Board of Trustees</Copyright>
-        <Version>1.0.3</Version>
+        <Version>1.0.4</Version>
         <NoWarn>CS1591,CS8618,NU5104</NoWarn>
     </PropertyGroup>
 
