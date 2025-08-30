@@ -25,11 +25,11 @@
         </PackageReference>
         <PackageReference Include="FastEndpoints.Security" Version="7.0.1" />
         <PackageReference Include="FastEndpoints.Swagger" Version="7.0.1" />
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.7" NoWarn="NU1605" />
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="9.0.7" NoWarn="NU1605" />
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.7" />
-        <PackageReference Include="Microsoft.Identity.Web" Version="3.11.0" />
-        <PackageReference Include="Microsoft.Identity.Web.DownstreamApi" Version="3.11.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.8" NoWarn="NU1605" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="9.0.8" NoWarn="NU1605" />
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.8" />
+        <PackageReference Include="Microsoft.Identity.Web" Version="3.14.0" />
+        <PackageReference Include="Microsoft.Identity.Web.DownstreamApi" Version="3.14.0" />
         <PackageReference Include="Microsoft.OpenApi.ApiManifest" Version="2.0.0-preview5" />
         <PackageReference Include="Microsoft.OpenApi.Kiota.Builder" Version="1.28.0" />
         <PackageReference Include="Riok.Mapperly" Version="4.2.1" />
