@@ -17,21 +17,21 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="FastEndpoints" Version="7.0.1" />
-        <PackageReference Include="FastEndpoints.ClientGen.Kiota" Version="7.0.1" />
-        <PackageReference Include="FastEndpoints.Generator" Version="7.0.1">
+        <PackageReference Include="FastEndpoints" Version="7.1.0" />
+        <PackageReference Include="FastEndpoints.ClientGen.Kiota" Version="7.1.0" />
+        <PackageReference Include="FastEndpoints.Generator" Version="7.1.0">
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="FastEndpoints.Security" Version="7.0.1" />
-        <PackageReference Include="FastEndpoints.Swagger" Version="7.0.1" />
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.8" NoWarn="NU1605" />
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="9.0.8" NoWarn="NU1605" />
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.8" />
-        <PackageReference Include="Microsoft.Identity.Web" Version="3.14.0" />
-        <PackageReference Include="Microsoft.Identity.Web.DownstreamApi" Version="3.14.0" />
+        <PackageReference Include="FastEndpoints.Security" Version="7.1.0" />
+        <PackageReference Include="FastEndpoints.Swagger" Version="7.1.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.10" NoWarn="NU1605" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="9.0.10" NoWarn="NU1605" />
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.10" />
+        <PackageReference Include="Microsoft.Identity.Web" Version="4.0.1" />
+        <PackageReference Include="Microsoft.Identity.Web.DownstreamApi" Version="4.0.1" />
         <PackageReference Include="Microsoft.OpenApi.ApiManifest" Version="2.0.0-preview5" />
-        <PackageReference Include="Microsoft.OpenApi.Kiota.Builder" Version="1.28.0" />
-        <PackageReference Include="Riok.Mapperly" Version="4.2.1" />
+        <PackageReference Include="Microsoft.OpenApi.Kiota.Builder" Version="1.29.0" />
+        <PackageReference Include="Riok.Mapperly" Version="4.3.0" />
     </ItemGroup>
 </Project>
