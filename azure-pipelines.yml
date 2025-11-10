@@ -6,6 +6,14 @@ trigger:
 pool:
   vmImage: "windows-latest"
 
+resources:
+  repositories:
+    - repository: self
+    - repository: devops
+      type: github
+      name: graduatecollege/devops
+      endpoint: graduatecollege
+
 variables:
   buildConfiguration: "Release"
   projectPath: "CsLib/CsLib.csproj"
@@ -13,81 +21,10 @@ variables:
   minorVersion: "0"
 
 steps:
-  - checkout: self
-    fetchDepth: 0
-    persistCredentials: true
-
-  - task: UseDotNet@2
-    displayName: "Install .NET 9 SDK"
-    inputs:
-      packageType: "sdk"
-      version: "9.x"
-
-  - pwsh: |
-      $major = "$(majorVersion)"
-      $minor = "$(minorVersion)"
-
-      if (-not ($major -match '^[0-9]+$')) {
-        Write-Error "majorVersion must be a non-negative integer."
-        exit 1
-      }
-
-      if (-not ($minor -match '^[0-9]+$')) {
-        Write-Error "minorVersion must be a non-negative integer."
-        exit 1
-      }
-
-      $pattern = "^v$major\.$minor\.(\d+)$"
-      $tags = git tag --list "v$major.$minor.*"
-
-      $maxPatch = -1
-      foreach ($tag in $tags) {
-        if ($tag -match $pattern) {
-          $patch = [int]$Matches[1]
-          if ($patch -gt $maxPatch) {
-            $maxPatch = $patch
-          }
-        }
-      }
-
-      $nextPatch = if ($maxPatch -ge 0) { $maxPatch + 1 } else { 0 }
-      $computedVersion = "$major.$minor.$nextPatch"
-
-      Write-Host "Computed package version: $computedVersion"
-      Write-Host "##vso[task.setvariable variable=packageVersion]$computedVersion"
-      Write-Host "##vso[build.updatebuildnumber]v$computedVersion"
-    displayName: "Compute package version"
-
-  - task: NuGetAuthenticate@1
-    displayName: "Authenticate with gradcollege feed"
-
-  - task: DotNetCoreCLI@2
-    displayName: "Build project"
-    inputs:
-      command: "build"
-      projects: "$(projectPath)"
-      arguments: "--configuration $(buildConfiguration) /p:Version=$(packageVersion)"
-
-  - task: DotNetCoreCLI@2
-    displayName: "Pack NuGet package"
-    inputs:
-      command: "pack"
-      packagesToPack: "$(projectPath)"
-      configuration: "$(buildConfiguration)"
-      versioningScheme: "byEnvVar"
-      versionEnvVar: "packageVersion"
-
-  - task: DotNetCoreCLI@2
-    displayName: "Push NuGet package to gradcollege feed"
-    inputs:
-      command: "push"
-      packagesToPush: "$(Build.ArtifactStagingDirectory)/**/*.nupkg"
-      nuGetFeedType: "internal"
-      publishVstsFeed: "gradcollege"
-
-  - pwsh: |
-      git config --global user.email "pipeline@azuredevops.com"
-      git config --global user.name "Azure DevOps"
-      git tag -a "v$(packageVersion)" -m "v$(packageVersion)"
-      git push origin "v$(packageVersion)"
-    displayName: "Create and push Git tag"
+  - template: nuget.yml@devops
+    parameters:
+      projectPath: 'CsLib/CsLib.csproj'
+      majorVersion: '1'
+      minorVersion: '0'
+      dotnetVersion: '9.x'
+      feedName: 'gradcollege'
