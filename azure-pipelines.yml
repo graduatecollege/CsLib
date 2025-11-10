@@ -37,7 +37,7 @@ steps:
         exit 1
       }
 
-      $pattern = "^v$major\.$minor\.(\\d+)$"
+      $pattern = "^v$major\.$minor\.(\d+)$"
       $tags = git tag --list "v$major.$minor.*"
 
       $maxPatch = -1
