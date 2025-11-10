@@ -58,6 +58,9 @@ steps:
       Write-Host "##vso[build.updatebuildnumber]v$computedVersion"
     displayName: "Compute package version"
 
+  - task: NuGetAuthenticate@1
+    displayName: "Authenticate with gradcollege feed"
+
   - task: DotNetCoreCLI@2
     displayName: "Build project"
     inputs:
