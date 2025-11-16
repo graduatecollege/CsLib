@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Identity.Web;
 using NSwag;
+using Microsoft.Extensions.Logging;
 
 namespace Grad.CsLib;
 
@@ -27,7 +28,7 @@ public static class CsLibWeb
         var exportSwagger = args.Contains("--exportswaggerjson", StringComparer.OrdinalIgnoreCase);
         if (exportSwagger)
         {
-            builder.WebHost.UseUrls("http://localhost:4999"); // Use a different port for export
+            builder.WebHost.UseUrls("http://localhost:4999"); // export port
         }
 
         builder.Services.SwaggerDocument(d =>
@@ -41,42 +42,38 @@ public static class CsLibWeb
                 settings.MarkNonNullablePropsAsRequired();
                 settings.PostProcess = s =>
                 {
-                    s.Servers.Add(new OpenApiServer
-                    {
-                        Url = "http://localhost:5203"
-                    });
+                    s.Servers.Add(new OpenApiServer { Url = "http://localhost:5203" });
                 };
             };
         });
 
         builder.Configuration[SwaggerKey] = "true";
+        Console.WriteLine($"[CsLibWeb] Swagger added: Name={name}, Version={version}, Title={title}, ExportMode={exportSwagger}");
         return builder;
     }
 
     public static WebApplicationBuilder AddCors(this WebApplicationBuilder builder)
     {
+        var corsOptions = builder.Configuration.GetSection(Cors.SectionName).Get<Cors>()!;
         builder.Services.AddCors(options =>
         {
-            var corsOptions = builder.Configuration.GetSection(Cors.SectionName).Get<Cors>()!;
             options.AddDefaultPolicy(policy => policy.WithOrigins(corsOptions.AllowedOrigins)
                 .WithMethods(corsOptions.AllowedMethods)
-                .WithHeaders(corsOptions.AllowedHeaders)
-            );
+                .WithHeaders(corsOptions.AllowedHeaders));
         });
 
         builder.Configuration[CorsKey] = "true";
+        Console.WriteLine($"[CsLibWeb] CORS added: Origins=[{string.Join(',', corsOptions.AllowedOrigins)}] Methods=[{string.Join(',', corsOptions.AllowedMethods)}] Headers=[{string.Join(',', corsOptions.AllowedHeaders)}]");
         return builder;
     }
 
     public static WebApplicationBuilder AddEndpoints(this WebApplicationBuilder builder, List<Type> discoveredTypes)
     {
-        builder.Services.AddFastEndpoints(o =>
-            {
-                o.SourceGeneratorDiscoveredTypes.AddRange(discoveredTypes);
-            })
+        builder.Services.AddFastEndpoints(o => { o.SourceGeneratorDiscoveredTypes.AddRange(discoveredTypes); })
             .AddHealthChecks();
 
         builder.Configuration[EndpointsKey] = "true";
+        Console.WriteLine($"[CsLibWeb] Endpoints added: DiscoveredTypeCount={discoveredTypes.Count}");
         return builder;
     }
 
@@ -91,7 +88,7 @@ public static class CsLibWeb
         
         builder.Services.AddAuthorization();
         builder.Configuration[AuthKey] = "true";
-
+        Console.WriteLine($"[CsLibWeb] Auth added: Mode=AzureAd, ClientId={builder.Configuration["AzureAd:ClientId"]}");
         return builder;
     }
 
@@ -106,7 +103,7 @@ public static class CsLibWeb
             .AddAuthorization();
 
         builder.Configuration[AuthKey] = "true";
-
+        Console.WriteLine("[CsLibWeb] Auth added: Mode=NoAuth (insecure dev JWT)");
         return builder;
     }
 
@@ -119,12 +116,15 @@ public static class CsLibWeb
     public static WebApplication BuildAndConfigureApp(this WebApplicationBuilder builder, Action<BindingOptions>? binding = null)
     {
         var app = builder.Build();
-        
+
+        var logger = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("CsLibWeb");
+
         CancellationTokenSource cancellation = new();
         app.Lifetime.ApplicationStopping.Register(() => { cancellation.Cancel(); });
 
         if (builder.Configuration[EndpointsKey] == "true")
         {
+            logger.LogInformation("Enable FastEndpoints + health checks");
             app.MapHealthChecks("/healthz");
             app.UseCsLibExceptionHandler()
                .UseFastEndpoints(c =>
@@ -137,11 +137,13 @@ public static class CsLibWeb
 
         if (builder.Configuration[SwaggerKey] == "true")
         {
+            logger.LogInformation("Enable Swagger");
             app.UseSwaggerGen();
         }
 
         if (builder.Configuration[CorsKey] == "true")
         {
+            logger.LogInformation("Enable CORS ({Mode})", app.Environment.IsDevelopment() ? "AllowAny" : "Policy");
             if (app.Environment.IsDevelopment())
             {
                 app.UseCors(b => b.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
@@ -152,19 +154,21 @@ public static class CsLibWeb
             }
         }
         
-        if (app.Environment.IsDevelopment())
+        if (!app.Environment.IsDevelopment())
         {
+            logger.LogInformation("Enable HSTS");
+            app.UseHsts();
         }
         else
         {
-            app.UseHsts();
+            logger.LogDebug("HSTS skipped in development");
         }
         
         if (builder.Configuration[AuthKey] == "true")
         {
+            logger.LogInformation("Enable authentication/authorization");
             if (app.Environment.IsDevelopment())
             {
-                // Custom middleware for developer token
                 app.Use(async (context, next) =>
                 {
                     var authHeader = context.Request.Headers.Authorization.FirstOrDefault();
@@ -175,9 +179,8 @@ public static class CsLibWeb
                             new(System.Security.Claims.ClaimTypes.Name, "Developer"),
                             new(System.Security.Claims.ClaimTypes.Role, "Admin")
                         };
-                        var identity = new System.Security.Claims.ClaimsIdentity(claims, "DeveloperToken");
-                        var principal = new System.Security.Claims.ClaimsPrincipal(identity);
-                        context.User = principal;
+                        context.User = new System.Security.Claims.ClaimsPrincipal(new System.Security.Claims.ClaimsIdentity(claims, "DeveloperToken"));
+                        logger.LogDebug("Injected developer principal");
                     }
                     await next();
                 });
