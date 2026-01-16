@@ -27,20 +27,10 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # Add any setup steps before running the `github/codeql-action/init` action.
-    # This includes steps like installing compilers or runtimes (`actions/setup-node`
-    # or others). This is typically only required for manual builds.
-    # - name: Setup runtime (example)
-    #   uses: actions/setup-example@v1
-    
-    - uses: actions/setup-dotnet@v5
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 9.x
-        config-file: nuget.config
-    
-    - name: auth helper script
-      run: |
-        curl -L https://raw.githubusercontent.com/Microsoft/artifacts-credprovider/master/helpers/installcredprovider.sh  | sh
 
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
@@ -50,12 +40,9 @@ jobs:
         build-mode: manual
         queries: security-extended
 
-    - name: Run manual build steps
-      shell: bash
-      env:
-        VSS_NUGET_EXTERNAL_FEED_ENDPOINTS: "{\"endpointCredentials\": [{\"endpoint\":\"https://pkgs.dev.azure.com/graduatecollege/_packaging/gradcollege/nuget/v3/index.json\", \"username\":\"docker\", \"password\":\"${{secrets.AZURE_NUGET_PAT}}\"}]}"
+    - name: Restore and build
       run: |
-        dotnet restore --configfile nuget.config
+        dotnet restore
         dotnet build --no-restore --configuration Release
 
     - name: Perform CodeQL Analysis
