@@ -34,7 +34,7 @@ jobs:
           echo "Package tag: $TAG_NAME"
 
       - name: Restore NuGet packages
-        run: dotnet restore CsLib/CsLib.csproj
+        run: dotnet restore CsLib/CsLib.csproj --configfile nuget.config
 
       - name: Build project
         run: dotnet build CsLib/CsLib.csproj --configuration Release --no-restore /p:Version=${{ steps.version.outputs.version }}
@@ -43,7 +43,7 @@ jobs:
         run: dotnet pack CsLib/CsLib.csproj --configuration Release --no-build /p:Version=${{ steps.version.outputs.version }} --output ./packages
 
       - name: Publish to GitHub Packages
-        run: dotnet nuget push ./packages/*.nupkg --source "https://nuget.pkg.github.com/graduatecollege/index.json" --api-key ${{ secrets.GITHUB_TOKEN }} --skip-duplicate
+        run: dotnet nuget push ./packages/*.nupkg --source "github" --api-key ${{ secrets.GITHUB_TOKEN }} --skip-duplicate
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2

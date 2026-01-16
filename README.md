@@ -27,5 +27,5 @@ To manually publish the library:
 dotnet clean -c Release
 dotnet build -c Release /p:Version=X.Y.Z
 dotnet pack -c Release --no-build /p:Version=X.Y.Z -o ./packages
-dotnet nuget push ./packages/*.nupkg --source "github" --api-key YOUR_GITHUB_PAT
+dotnet nuget push ./packages/*.nupkg --source "github" --api-key YOUR_GITHUB_PAT --skip-duplicate
 ```
