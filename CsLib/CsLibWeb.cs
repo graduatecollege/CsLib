@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
 using FastEndpoints;
 using FastEndpoints.Security;
 using FastEndpoints.Swagger;
@@ -12,6 +13,11 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Identity.Web;
 using NSwag;
 using Microsoft.Extensions.Logging;
+using Serilog;
+using Serilog.Events;
+using Serilog.Filters;
+using Serilog.Formatting.Compact;
+using Serilog.Formatting.Display;
 
 namespace Grad.CsLib;
 
@@ -21,11 +27,35 @@ public static class CsLibWeb
     private const string CorsKey = "CsLibWeb:Cors";
     private const string EndpointsKey = "CsLibWeb:Endpoints";
     private const string AuthKey = "CsLibWeb:Auth";
+    private const string SerilogKey = "CsLibWeb:Serilog";
+
+    private static void LogJson(string message, object? properties = null)
+    {
+        var logEntry = new Dictionary<string, object?>
+        {
+            ["@t"] = DateTime.UtcNow.ToString("O"),
+            ["@m"] = message,
+            ["SourceContext"] = "CsLibWeb"
+        };
+
+        if (properties != null)
+        {
+            foreach (var prop in properties.GetType().GetProperties())
+            {
+                logEntry[prop.Name] = prop.GetValue(properties);
+            }
+        }
+
+        Console.WriteLine(JsonSerializer.Serialize(logEntry));
+    }
 
     extension(WebApplicationBuilder builder)
     {
-        public WebApplicationBuilder AddSwagger(string[] args, string name,
-            string version, string title)
+        public WebApplicationBuilder AddSwagger(string[] args,
+            string name,
+            string version,
+            string title
+        )
         {
             var exportSwagger = args.Contains("--exportswaggerjson", StringComparer.OrdinalIgnoreCase);
             if (exportSwagger)
@@ -42,15 +72,13 @@ public static class CsLibWeb
                     settings.Version = version;
                     settings.Title = title;
                     settings.MarkNonNullablePropsAsRequired();
-                    settings.PostProcess = s =>
-                    {
-                        s.Servers.Add(new OpenApiServer { Url = "http://localhost:5203" });
-                    };
+                    settings.PostProcess = s => { s.Servers.Add(new OpenApiServer { Url = "http://localhost:5203" }); };
                 };
             });
 
             builder.Configuration[SwaggerKey] = "true";
-            Console.WriteLine($"[CsLibWeb] Swagger added: Name={name}, Version={version}, Title={title}, ExportMode={exportSwagger}");
+            LogJson($"Swagger added: Name={name}, Version={version}, Title={title}, ExportMode={exportSwagger}",
+                new { name, version, title, exportSwagger });
             return builder;
         }
 
@@ -65,7 +93,13 @@ public static class CsLibWeb
             });
 
             builder.Configuration[CorsKey] = "true";
-            Console.WriteLine($"[CsLibWeb] CORS added: Origins=[{string.Join(',', corsOptions.AllowedOrigins)}] Methods=[{string.Join(',', corsOptions.AllowedMethods)}] Headers=[{string.Join(',', corsOptions.AllowedHeaders)}]");
+            LogJson(
+                $"CORS added: Origins=[{string.Join(',', corsOptions.AllowedOrigins)}] Methods=[{string.Join(',', corsOptions.AllowedMethods)}] Headers=[{string.Join(',', corsOptions.AllowedHeaders)}]",
+                new
+                {
+                    Origins = corsOptions.AllowedOrigins, Methods = corsOptions.AllowedMethods,
+                    Headers = corsOptions.AllowedHeaders
+                });
             return builder;
         }
 
@@ -75,7 +109,8 @@ public static class CsLibWeb
                 .AddHealthChecks();
 
             builder.Configuration[EndpointsKey] = "true";
-            Console.WriteLine($"[CsLibWeb] Endpoints added: DiscoveredTypeCount={discoveredTypes.Count}");
+            LogJson($"Endpoints added: DiscoveredTypeCount={discoveredTypes.Count}",
+                new { DiscoveredTypeCount = discoveredTypes.Count });
             return builder;
         }
 
@@ -83,14 +118,50 @@ public static class CsLibWeb
         {
             builder.Services.AddAuthentication()
                 .AddMicrosoftIdentityWebApi(options =>
-                {
-                    builder.Configuration.Bind("AzureAd", options);
-                    options.TokenValidationParameters.NameClaimType = "name";
-                }, options => { builder.Configuration.Bind("AzureAd", options); });
-        
+                    {
+                        builder.Configuration.Bind("AzureAd", options);
+                        options.TokenValidationParameters.NameClaimType = "name";
+                    },
+                    options => { builder.Configuration.Bind("AzureAd", options); });
+
             builder.Services.AddAuthorization();
             builder.Configuration[AuthKey] = "true";
-            Console.WriteLine($"[CsLibWeb] Auth added: Mode=AzureAd, ClientId={builder.Configuration["AzureAd:ClientId"]}");
+            var clientId = builder.Configuration["AzureAd:ClientId"];
+            LogJson($"Auth added: Mode=AzureAd, ClientId={clientId}",
+                new { Mode = "AzureAd", ClientId = clientId });
+            return builder;
+        }
+
+        public WebApplicationBuilder AddSerilog(Action<LoggerConfiguration>? configureLogger = null)
+        {
+            builder.Services.AddSerilog(c =>
+            {
+                if (builder.Environment.IsDevelopment())
+                {
+                    c.WriteTo.Console(
+                        outputTemplate:
+                        "[{Timestamp:HH:mm:ss} {Level}] {RequestMethod} {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}");
+                }
+                else
+                {
+                    c.WriteTo.Console(new RenderedCompactJsonFormatter());
+                }
+
+                c
+                    .MinimumLevel.Override("Microsoft.AspNetCore.Hosting", LogEventLevel.Warning)
+                    .MinimumLevel.Override("Microsoft.AspNetCore.Mvc", LogEventLevel.Warning)
+                    .MinimumLevel.Override("Microsoft.AspNetCore.Routing", LogEventLevel.Warning)
+                    .MinimumLevel.Override("Microsoft.AspNetCore.Cors.Infrastructure.CorsService",
+                        LogEventLevel.Warning);
+
+                c.Enrich.FromLogContext()
+                    .Filter.ByExcluding(Matching
+                        .WithProperty<string>("RequestMethod", p => p == "OPTIONS"));
+
+                configureLogger?.Invoke(c);
+            });
+            builder.Configuration[SerilogKey] = "true";
+            LogJson("Serilog added");
             return builder;
         }
 
@@ -105,7 +176,8 @@ public static class CsLibWeb
                 .AddAuthorization();
 
             builder.Configuration[AuthKey] = "true";
-            Console.WriteLine("[CsLibWeb] Auth added: Mode=NoAuth (insecure dev JWT)");
+            LogJson("Auth added: Mode=NoAuth (insecure dev JWT)",
+                new { Mode = "NoAuth" });
             return builder;
         }
 
@@ -123,6 +195,11 @@ public static class CsLibWeb
 
             CancellationTokenSource cancellation = new();
             app.Lifetime.ApplicationStopping.Register(() => { cancellation.Cancel(); });
+
+            if (builder.Configuration[SerilogKey] == "true")
+            {
+                app.UseSerilogRequestLogging();
+            }
 
             if (builder.Configuration[EndpointsKey] == "true")
             {
@@ -155,7 +232,7 @@ public static class CsLibWeb
                     app.UseCors();
                 }
             }
-        
+
             if (!app.Environment.IsDevelopment())
             {
                 logger.LogInformation("Enable HSTS");
@@ -165,7 +242,7 @@ public static class CsLibWeb
             {
                 logger.LogDebug("HSTS skipped in development");
             }
-        
+
             if (builder.Configuration[AuthKey] == "true")
             {
                 logger.LogInformation("Enable authentication/authorization");
@@ -174,19 +251,24 @@ public static class CsLibWeb
                     app.Use(async (context, next) =>
                     {
                         var authHeader = context.Request.Headers.Authorization.FirstOrDefault();
-                        if (authHeader != null && authHeader.StartsWith("Bearer developer", StringComparison.OrdinalIgnoreCase))
+                        if (authHeader != null &&
+                            authHeader.StartsWith("Bearer developer", StringComparison.OrdinalIgnoreCase))
                         {
                             var claims = new List<System.Security.Claims.Claim>
                             {
                                 new(System.Security.Claims.ClaimTypes.Name, "Developer"),
                                 new(System.Security.Claims.ClaimTypes.Role, "Admin")
                             };
-                            context.User = new System.Security.Claims.ClaimsPrincipal(new System.Security.Claims.ClaimsIdentity(claims, "DeveloperToken"));
+                            context.User =
+                                new System.Security.Claims.ClaimsPrincipal(
+                                    new System.Security.Claims.ClaimsIdentity(claims, "DeveloperToken"));
                             logger.LogDebug("Injected developer principal");
                         }
+
                         await next();
                     });
                 }
+
                 app.UseAuthentication();
                 app.UseAuthorization();
             }
