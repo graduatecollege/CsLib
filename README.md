@@ -1,31 +1,14 @@
 # CsLib
 
-Graduate College web application common library, primarily
-for web application APIs.
+Graduate College web application common library for web application APIs
+and other related projects.
 
-## Publish
+## Requirements
 
-Publishing is automated via GitHub Actions. To publish a new version:
+- .NET Core 10
+- CsLib depends on [FastEndpoints](https://fast-endpoints.com/), a minimal wrapper around .NET Core minimal APIs.
 
-1. Push a tag in the format `vX.Y.Z` (e.g., `v1.0.9`):
-   ```bash
-   git tag v1.0.9
-   git push origin v1.0.9
-   ```
+## Project Structure
 
-2. The GitHub Actions workflow will automatically:
-   - Build the project
-   - Create a NuGet package with the version from the tag
-   - Publish to GitHub Packages
-   - Create a GitHub release
-
-### Manual Publishing (if needed)
-
-To manually publish the library:
-
-```bash
-dotnet clean -c Release
-dotnet build -c Release /p:Version=X.Y.Z
-dotnet pack -c Release --no-build /p:Version=X.Y.Z -o ./packages
-dotnet nuget push ./packages/*.nupkg --source "github" --api-key YOUR_GITHUB_PAT --skip-duplicate
-```
+- `CsLib/` is primarily for API development.
+- `CsLib.Data/` is primarily for database functionality.
