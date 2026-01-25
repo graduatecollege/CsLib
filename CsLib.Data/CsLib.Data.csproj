@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AssemblyName>Grad.CsLib.Data</AssemblyName>
+        <RootNamespace>Grad.CsLib.Data</RootNamespace>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Title>Grad CsLib Data</Title>
+        <Authors>marvel@illinois.edu</Authors>
+        <Description>Database utilities for Graduate College C# web applications.</Description>
+        <Copyright>University of Illinois Board of Trustees</Copyright>
+        <Version>2.0.1</Version>
+        <NoWarn>CS1591,CS8618,NU5104</NoWarn>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Dapper" Version="2.1.66" />
+      <PackageReference Include="dbup-core" Version="6.0.15" />
+      <PackageReference Include="dbup-sqlserver" Version="6.0.16" />
+    </ItemGroup>
+
+</Project>
