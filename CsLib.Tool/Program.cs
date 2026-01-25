@@ -7,24 +7,29 @@ var rootCommand = new RootCommand("CsLib management tool");
 var modelsCommand =
     new Command("models", "Scaffold the database context and entity classes using Entity Framework Core.");
 var connectionStringOption =
-    new Option<string?>(["--connection-string", "-c"], "The connection string to use.");
-modelsCommand.AddOption(connectionStringOption);
+    new Option<string?>("--connection-string") { Description = "The connection string to use." };
+connectionStringOption.Aliases.Add("-c");
+modelsCommand.Options.Add(connectionStringOption);
 
-modelsCommand.SetHandler(async connectionString => { await HandleModels(connectionString); }, connectionStringOption);
+modelsCommand.SetAction(async parseResult =>
+{
+    var connectionString = parseResult.GetValue(connectionStringOption);
+    await HandleModels(connectionString);
+});
 
 var rebuildModelsCommand = new Command("rebuild-models", "Rebuild models using a temporary SQL Server container.");
-rebuildModelsCommand.SetHandler(async () => { await HandleRebuildModels(); });
+rebuildModelsCommand.SetAction(async _ => { await HandleRebuildModels(); });
 
 var openapiCommand = new Command("openapi", "Builds the OpenAPI JSON spec and TypeScript client files.");
-openapiCommand.SetHandler(async () => { await HandleOpenApi(); });
+openapiCommand.SetAction(async _ => { await HandleOpenApi(); });
 
-rootCommand.AddCommand(modelsCommand);
-rootCommand.AddCommand(rebuildModelsCommand);
-rootCommand.AddCommand(openapiCommand);
+rootCommand.Subcommands.Add(modelsCommand);
+rootCommand.Subcommands.Add(rebuildModelsCommand);
+rootCommand.Subcommands.Add(openapiCommand);
 
 if (args.Length == 0)
 {
-    await rootCommand.InvokeAsync("-h");
+    rootCommand.Parse("-h").Invoke();
     Console.WriteLine();
     Console.WriteLine("Project Structure Requirements:");
     Console.WriteLine("  This tool expects a specific project structure to function correctly:");
@@ -39,7 +44,8 @@ if (args.Length == 0)
     return 0;
 }
 
-return await rootCommand.InvokeAsync(args);
+var parseResult = rootCommand.Parse(args);
+return parseResult.Invoke();
 
 async Task HandleModels(string? connectionString)
 {
