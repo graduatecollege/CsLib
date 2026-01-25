@@ -34,13 +34,15 @@ jobs:
           echo "Package tag: $TAG_NAME"
 
       - name: Restore NuGet packages
-        run: dotnet restore CsLib/CsLib.csproj --configfile nuget.config
+        run: dotnet restore CsLib.sln --configfile nuget.config
 
-      - name: Build project
-        run: dotnet build CsLib/CsLib.csproj --configuration Release --no-restore /p:Version=${{ steps.version.outputs.version }}
+      - name: Build projects
+        run: dotnet build CsLib.sln --configuration Release --no-restore /p:Version=${{ steps.version.outputs.version }}
 
-      - name: Pack NuGet package
-        run: dotnet pack CsLib/CsLib.csproj --configuration Release --no-build /p:Version=${{ steps.version.outputs.version }} --output ./packages
+      - name: Pack NuGet packages
+        run: |
+          dotnet pack CsLib/CsLib.csproj --configuration Release --no-build /p:Version=${{ steps.version.outputs.version }} --output ./packages
+          dotnet pack CsLib.Data/CsLib.Data.csproj --configuration Release --no-build /p:Version=${{ steps.version.outputs.version }} --output ./packages
 
       - name: Publish to GitHub Packages
         run: dotnet nuget push ./packages/*.nupkg --source "github" --api-key ${{ secrets.GITHUB_TOKEN }} --skip-duplicate
