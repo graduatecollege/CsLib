@@ -16,6 +16,7 @@ boilerplate, common utilities, and standardized patterns for .NET-based services
 - **Validation:** [FluentValidation](https://docs.fluentvalidation.net/)
 - **Logging:** Serilog
 - **Documentation:** Swagger/NSwag
+- **Tooling:** `cslib` (dotnet tool for EF scaffolding and OpenAPI generation)
 
 ## Project Structure
 
@@ -29,6 +30,9 @@ boilerplate, common utilities, and standardized patterns for .NET-based services
     - `DatabaseMigrator.cs`: Wrapper for DbUp migrations.
     - `QueryableExtensions.cs`: Helpers for sorting, paging, and filtering `IQueryable` sources.
     - `PageOptions.cs`: Standard DTO for pagination and sorting parameters.
+- `/CsLib.Tool`: Source for the `cslib` dotnet tool.
+    - Used for EF Core scaffolding (`models`, `rebuild-models`) and OpenAPI/TypeScript generation (`openapi`).
+    - Depends on specific project naming conventions (`*Data.csproj`, `*Server.csproj`).
 
 ## Code conventions
 
