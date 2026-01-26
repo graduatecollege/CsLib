@@ -135,6 +135,10 @@ public static class CsLibWeb
             return builder;
         }
 
+        /// <summary>
+        /// Adds and configures Microsoft Identity Web API authentication and authorization.
+        /// </summary>
+        /// <returns>The <see cref="WebApplicationBuilder"/> instance.</returns>
         public WebApplicationBuilder AddAuth()
         {
             builder.Services.AddAuthentication()
@@ -153,6 +157,11 @@ public static class CsLibWeb
             return builder;
         }
 
+        /// <summary>
+        /// Adds and configures Serilog for logging.
+        /// </summary>
+        /// <param name="configureLogger">An optional action to further configure the <see cref="LoggerConfiguration"/>.</param>
+        /// <returns>The <see cref="WebApplicationBuilder"/> instance.</returns>
         public WebApplicationBuilder AddSerilog(Action<LoggerConfiguration>? configureLogger = null)
         {
             builder.Services.AddSerilog(c =>
@@ -187,11 +196,10 @@ public static class CsLibWeb
         }
 
         /// <summary>
-        /// Builds the WebApplication and configures middleware conditionally based on Add* calls.
-        ///
-        /// Accepts an optional function to configure BindingOptions, which you would typically
-        /// use to add source generated types.
+        /// Builds the <see cref="WebApplication"/> and configures middleware conditionally based on Add* calls.
         /// </summary>
+        /// <param name="binding">An optional action to configure <see cref="BindingOptions"/>, typically used to add source generated types.</param>
+        /// <returns>The configured <see cref="WebApplication"/> instance.</returns>
         public WebApplication BuildAndConfigureApp(Action<BindingOptions>? binding = null)
         {
             var app = builder.Build();
