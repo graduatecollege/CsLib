@@ -3,12 +3,42 @@
 *Generated from Grad.CsLib.xml*
 
 
-### AddNoAuth(Microsoft.AspNetCore.Builder.WebApplicationBuilder)
+## CsLibWeb
 
-**Method**: `Grad.CsLib.CsLibWeb.AddNoAuth(Microsoft.AspNetCore.Builder.WebApplicationBuilder)`
+**Type**: `Grad.CsLib.CsLibWeb`
 
-APIs that don't require authentication still need some form of authentication. This adds an insecure
- JWT Bearer authentication scheme.
+Provides extension methods for `Microsoft.AspNetCore.Builder.WebApplicationBuilder` to simplify common web application setup
+ based on Graduate College standards.
+
+---
+
+
+### AddSwagger(Microsoft.AspNetCore.Builder.WebApplicationBuilder,string[],string,string,string)
+
+**Method**: `Grad.CsLib.CsLibWeb.AddSwagger(Microsoft.AspNetCore.Builder.WebApplicationBuilder,string[],string,string,string)`
+
+Adds and configures Swagger documentation using FastEndpoints.
+
+**args**: Command line arguments to check for `--exportswaggerjson`.
+
+**name**: The name of the Swagger document.
+
+**version**: The version of the API.
+
+**title**: The title of the API.
+
+**Returns**: The `Microsoft.AspNetCore.Builder.WebApplicationBuilder` instance.
+
+---
+
+
+### AddCors(Microsoft.AspNetCore.Builder.WebApplicationBuilder)
+
+**Method**: `Grad.CsLib.CsLibWeb.AddCors(Microsoft.AspNetCore.Builder.WebApplicationBuilder)`
+
+Adds and configures CORS (Cross-Origin Resource Sharing) based on configuration.
+
+**Returns**: The `Microsoft.AspNetCore.Builder.WebApplicationBuilder` instance.
 
 ---
 

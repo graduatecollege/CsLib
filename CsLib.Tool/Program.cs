@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-var rootCommand = new RootCommand("CsLib management tool");
+var rootCommand = new RootCommand("Utility dotnet tools for Graduate College .NET backend applications.");
 
 var modelsCommand =
     new Command("models", "Scaffold the database context and entity classes using Entity Framework Core.");
