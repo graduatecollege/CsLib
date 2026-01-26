@@ -13,6 +13,7 @@
         <Copyright>University of Illinois Board of Trustees</Copyright>
         <Version>2.0.1</Version>
         <NoWarn>CS1591,CS8618,NU5104</NoWarn>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
     </PropertyGroup>
 
     <ItemGroup>

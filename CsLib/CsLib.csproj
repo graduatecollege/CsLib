@@ -14,15 +14,12 @@
         <Copyright>University of Illinois Board of Trustees</Copyright>
         <Version>2.0.0</Version>
         <NoWarn>CS1591,CS8618,NU5104</NoWarn>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
     </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="FastEndpoints" Version="7.2.0" />
         <PackageReference Include="FastEndpoints.ClientGen.Kiota" Version="7.2.0" />
-        <PackageReference Include="FastEndpoints.Generator" Version="7.2.0">
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-            <PrivateAssets>all</PrivateAssets>
-        </PackageReference>
         <PackageReference Include="FastEndpoints.Security" Version="7.2.0" />
         <PackageReference Include="FastEndpoints.Swagger" Version="7.2.0" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.2" NoWarn="NU1605" />

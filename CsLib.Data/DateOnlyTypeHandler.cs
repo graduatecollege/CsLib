@@ -3,6 +3,9 @@ using Dapper;
 
 namespace Grad.CsLib.Data;
 
+/// <summary>
+/// Dapper type handler for DateOnly.
+/// </summary>
 public class DateOnlyTypeHandler : SqlMapper.TypeHandler<DateOnly>
 {
     public override void SetValue(IDbDataParameter parameter, DateOnly value)

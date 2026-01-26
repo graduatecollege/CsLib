@@ -10,6 +10,10 @@ public class DatabaseMigrator
 {
     private readonly string _connectionString;
 
+    /// <summary>
+    /// Handles database migrations using DbUp and records the migration history into a schema called `DbUp`, which must exist.
+    /// </summary>
+    /// <param name="connectionString">The connection string to the database.</param>
     public DatabaseMigrator(string connectionString)
     {
         _connectionString = connectionString;
@@ -28,7 +32,7 @@ public class DatabaseMigrator
                     .SqlDatabase(_connectionString)
                     .WithTransactionPerScript()
                     .JournalToSqlTable("DbUp", "SchemaVersions")
-                    .WithScriptsEmbeddedInAssembly(Assembly.GetExecutingAssembly())
+                    .WithScriptsEmbeddedInAssembly(Assembly.GetCallingAssembly())
                     .LogToConsole()
                     .Build();
 
