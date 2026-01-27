@@ -43,14 +43,52 @@ Adds and configures CORS (Cross-Origin Resource Sharing) based on configuration.
 ---
 
 
+### AddEndpoints(Microsoft.AspNetCore.Builder.WebApplicationBuilder,System.Collections.Generic.List<System.Type>)
+
+**Method**: `Grad.CsLib.CsLibWeb.AddEndpoints(Microsoft.AspNetCore.Builder.WebApplicationBuilder,System.Collections.Generic.List<System.Type>)`
+
+Registers FastEndpoints with the provided discovered types and adds health checks.
+
+**discoveredTypes**: A list of types discovered by the source generator to be registered with FastEndpoints.
+
+**Returns**: The `Microsoft.AspNetCore.Builder.WebApplicationBuilder` instance.
+
+---
+
+
+### AddAuth(Microsoft.AspNetCore.Builder.WebApplicationBuilder)
+
+**Method**: `Grad.CsLib.CsLibWeb.AddAuth(Microsoft.AspNetCore.Builder.WebApplicationBuilder)`
+
+Adds and configures Microsoft Identity Web API authentication and authorization.
+
+**Returns**: The `Microsoft.AspNetCore.Builder.WebApplicationBuilder` instance.
+
+---
+
+
+### AddSerilog(Microsoft.AspNetCore.Builder.WebApplicationBuilder,Action<Serilog.LoggerConfiguration>)
+
+**Method**: `Grad.CsLib.CsLibWeb.AddSerilog(Microsoft.AspNetCore.Builder.WebApplicationBuilder,Action<Serilog.LoggerConfiguration>)`
+
+Adds and configures Serilog for logging.
+
+**configureLogger**: An optional action to further configure the `Serilog.LoggerConfiguration`.
+
+**Returns**: The `Microsoft.AspNetCore.Builder.WebApplicationBuilder` instance.
+
+---
+
+
 ### BuildAndConfigureApp(Microsoft.AspNetCore.Builder.WebApplicationBuilder,Action<FastEndpoints.BindingOptions>)
 
 **Method**: `Grad.CsLib.CsLibWeb.BuildAndConfigureApp(Microsoft.AspNetCore.Builder.WebApplicationBuilder,Action<FastEndpoints.BindingOptions>)`
 
-Builds the WebApplication and configures middleware conditionally based on Add* calls.
- 
- Accepts an optional function to configure BindingOptions, which you would typically
- use to add source generated types.
+Builds the `Microsoft.AspNetCore.Builder.WebApplication` and configures middleware conditionally based on Add* calls.
+
+**binding**: An optional action to configure `FastEndpoints.BindingOptions`, typically used to add source generated types.
+
+**Returns**: The configured `Microsoft.AspNetCore.Builder.WebApplication` instance.
 
 ---
 

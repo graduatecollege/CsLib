@@ -1,18 +1,17 @@
 # CsLib
 
-Graduate College web application common library for web application APIs
+Graduate College C# common library for web application APIs
 and other related projects.
+
+For API definitions, see:
+
+- [Grad.CsLib.md](./Grad.CsLib.md)
+- [Grad.CsLib.Data.md](./Grad.CsLib.Data.md)
 
 ## Requirements
 
 - .NET Core 10
-- CsLib depends on [FastEndpoints](https://fast-endpoints.com/), a minimal wrapper around .NET Core minimal APIs.
-
-## Project Structure
-
-- `CsLib/` is primarily for API development.
-- `CsLib.Data/` is primarily for database functionality.
-- `CsLib.Tool/` contains the `cslib` dotnet tool for project management tasks.
+- dotnet-ef: `dotnet tool install --global dotnet-ef`
 
 ## CsLib Tool (`cslib`)
 
@@ -20,10 +19,10 @@ and other related projects.
 
 ### Installation
 
-To install the tool globally:
+Install the tool locally:
 
 ```bash
-dotnet tool install -g Grad.CsLib.Tool
+dotnet tool install --local Grad.CsLib.Tool
 ```
 
 ### Commands
