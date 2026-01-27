@@ -13,7 +13,9 @@ Provides extension methods for `Microsoft.AspNetCore.Builder.WebApplicationBuild
 ---
 
 
-### AddSwagger(Microsoft.AspNetCore.Builder.WebApplicationBuilder,string[],string,string,string)
+### AddSwagger(string[],string,string,string)
+
+**Extends**: `Microsoft.AspNetCore.Builder.WebApplicationBuilder`
 
 **Method**: `Grad.CsLib.CsLibWeb.AddSwagger(Microsoft.AspNetCore.Builder.WebApplicationBuilder,string[],string,string,string)`
 
@@ -32,7 +34,9 @@ Adds and configures Swagger documentation using FastEndpoints.
 ---
 
 
-### AddCors(Microsoft.AspNetCore.Builder.WebApplicationBuilder)
+### AddCors()
+
+**Extends**: `Microsoft.AspNetCore.Builder.WebApplicationBuilder`
 
 **Method**: `Grad.CsLib.CsLibWeb.AddCors(Microsoft.AspNetCore.Builder.WebApplicationBuilder)`
 
@@ -43,7 +47,9 @@ Adds and configures CORS (Cross-Origin Resource Sharing) based on configuration.
 ---
 
 
-### AddEndpoints(Microsoft.AspNetCore.Builder.WebApplicationBuilder,System.Collections.Generic.List<System.Type>)
+### AddEndpoints(System.Collections.Generic.List<System.Type>)
+
+**Extends**: `Microsoft.AspNetCore.Builder.WebApplicationBuilder`
 
 **Method**: `Grad.CsLib.CsLibWeb.AddEndpoints(Microsoft.AspNetCore.Builder.WebApplicationBuilder,System.Collections.Generic.List<System.Type>)`
 
@@ -56,7 +62,9 @@ Registers FastEndpoints with the provided discovered types and adds health check
 ---
 
 
-### AddAuth(Microsoft.AspNetCore.Builder.WebApplicationBuilder)
+### AddAuth()
+
+**Extends**: `Microsoft.AspNetCore.Builder.WebApplicationBuilder`
 
 **Method**: `Grad.CsLib.CsLibWeb.AddAuth(Microsoft.AspNetCore.Builder.WebApplicationBuilder)`
 
@@ -67,7 +75,9 @@ Adds and configures Microsoft Identity Web API authentication and authorization.
 ---
 
 
-### AddSerilog(Microsoft.AspNetCore.Builder.WebApplicationBuilder,Action<Serilog.LoggerConfiguration>)
+### AddSerilog(Action<Serilog.LoggerConfiguration>)
+
+**Extends**: `Microsoft.AspNetCore.Builder.WebApplicationBuilder`
 
 **Method**: `Grad.CsLib.CsLibWeb.AddSerilog(Microsoft.AspNetCore.Builder.WebApplicationBuilder,Action<Serilog.LoggerConfiguration>)`
 
@@ -80,7 +90,9 @@ Adds and configures Serilog for logging.
 ---
 
 
-### BuildAndConfigureApp(Microsoft.AspNetCore.Builder.WebApplicationBuilder,Action<FastEndpoints.BindingOptions>)
+### BuildAndConfigureApp(Action<FastEndpoints.BindingOptions>)
+
+**Extends**: `Microsoft.AspNetCore.Builder.WebApplicationBuilder`
 
 **Method**: `Grad.CsLib.CsLibWeb.BuildAndConfigureApp(Microsoft.AspNetCore.Builder.WebApplicationBuilder,Action<FastEndpoints.BindingOptions>)`
 
@@ -120,7 +132,9 @@ Provides custom validation rules for specific use cases in Graduate College appl
 ---
 
 
-### MustBeProgramCode(FluentValidation.IRuleBuilder<T,string>)
+### MustBeProgramCode()
+
+**Extends**: `FluentValidation.IRuleBuilder<T,string>`
 
 **Method**: `Grad.CsLib.Validators.GradValidators.MustBeProgramCode(FluentValidation.IRuleBuilder<T,string>)`
 
@@ -129,7 +143,9 @@ Validates that a string is a valid program code.
 ---
 
 
-### MustBeDepartmentCode(FluentValidation.IRuleBuilder<T,string>)
+### MustBeDepartmentCode()
+
+**Extends**: `FluentValidation.IRuleBuilder<T,string>`
 
 **Method**: `Grad.CsLib.Validators.GradValidators.MustBeDepartmentCode(FluentValidation.IRuleBuilder<T,string>)`
 
@@ -138,7 +154,9 @@ Validates that a string is a valid department code.
 ---
 
 
-### MustBeTermCode(FluentValidation.IRuleBuilder<T,string>)
+### MustBeTermCode()
+
+**Extends**: `FluentValidation.IRuleBuilder<T,string>`
 
 **Method**: `Grad.CsLib.Validators.GradValidators.MustBeTermCode(FluentValidation.IRuleBuilder<T,string>)`
 
@@ -147,7 +165,9 @@ Validates that a string is a valid term code, e.g. 120248.
 ---
 
 
-### MustBeUin(FluentValidation.IRuleBuilder<T,string>)
+### MustBeUin()
+
+**Extends**: `FluentValidation.IRuleBuilder<T,string>`
 
 **Method**: `Grad.CsLib.Validators.GradValidators.MustBeUin(FluentValidation.IRuleBuilder<T,string>)`
 
@@ -156,7 +176,9 @@ Validates that a string is a valid 9-digit numeric UIN (University Identificatio
 ---
 
 
-### MustBeValidDbIdentifier(FluentValidation.IRuleBuilder<T,string>)
+### MustBeValidDbIdentifier()
+
+**Extends**: `FluentValidation.IRuleBuilder<T,string>`
 
 **Method**: `Grad.CsLib.Validators.GradValidators.MustBeValidDbIdentifier(FluentValidation.IRuleBuilder<T,string>)`
 

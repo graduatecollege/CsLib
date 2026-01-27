@@ -28,6 +28,8 @@ class CSharpDocConverter:
             '`2': 'T3',
             '`3': 'T4',
         }
+        # Map of member names to their extended type (for extension methods)
+        self.extension_methods = {}
     
     def format_type_name(self, type_name):
         """Format a C# type name to be more readable."""
@@ -78,7 +80,56 @@ class CSharpDocConverter:
         
         return member_type, full_name, name_attr
     
-    def format_method_signature(self, full_name):
+    def count_parameters(self, name_attr):
+        """Count the number of parameters in a method signature."""
+        # Extract parameters part
+        match = re.search(r'\(([^)]*)\)', name_attr)
+        if not match:
+            return 0
+        params = match.group(1)
+        if not params:
+            return 0
+        
+        # Count commas to get parameter count
+        # Need to handle nested generics (braces) properly
+        depth = 0
+        count = 1  # If there's any text, there's at least one param
+        for char in params:
+            if char == '{':
+                depth += 1
+            elif char == '}':
+                depth -= 1
+            elif char == ',' and depth == 0:
+                count += 1
+        return count
+    
+    def extract_first_parameter_type(self, name_attr):
+        """Extract the type of the first parameter from a method signature."""
+        # Extract parameters part
+        params_match = re.search(r'\(([^)]+)\)', name_attr)
+        if not params_match:
+            return None
+        params = params_match.group(1)
+        
+        # Need to handle nested braces to find the first comma at depth 0
+        depth = 0
+        first_comma_idx = -1
+        for i, char in enumerate(params):
+            if char == '{':
+                depth += 1
+            elif char == '}':
+                depth -= 1
+            elif char == ',' and depth == 0:
+                first_comma_idx = i
+                break
+        
+        if first_comma_idx == -1:
+            # No comma at depth 0, so the entire params is the first parameter
+            return params
+        else:
+            return params[:first_comma_idx]
+    
+    def format_method_signature(self, full_name, name_attr=None):
         """Format a method signature for display."""
         # Handle constructors: Convert #ctor to class name
         if '#ctor' in full_name:
@@ -117,29 +168,34 @@ class CSharpDocConverter:
         # Remove generic arity indicator from method name (e.g., ``1)
         method_name = re.sub(r'``\d+', '', method_name)
         
-        # Check if this is an extension method (first param is the extended type)
-        # Extension methods have IQueryable or other type as first parameter
-        if params and params != '()':
-            # Extract first parameter
-            first_param_match = re.search(r'\(([^,)]+)', params)
-            if first_param_match:
-                first_param = first_param_match.group(1)
-                
-                # Check if it looks like an extension method (IQueryable, IEnumerable, etc.)
-                if 'IQueryable' in first_param or 'IEnumerable' in first_param:
-                    # Format as extension method: Type.Method(other params)
-                    formatted_first = self.format_type_name(first_param)
-                    
-                    # Extract remaining parameters
-                    # Remove first parameter from the params string
-                    remaining_match = re.search(r'\([^,)]+,(.+)\)', params)
-                    if remaining_match:
-                        remaining = remaining_match.group(1)
-                        formatted_remaining = self.format_type_name(remaining)
-                        return f"{formatted_first}.{method_name}({formatted_remaining})"
-                    else:
-                        # No other parameters
-                        return f"{formatted_first}.{method_name}()"
+        # Check if this is an extension method using the pre-built map
+        if name_attr and name_attr in self.extension_methods:
+            # For extension methods, return just the method name and remaining parameters
+            # (The extended type will be added separately in format_member_header)
+            
+            # Extract the parameters content (without parens)
+            params_content = params[1:-1] if params.startswith('(') and params.endswith(')') else params
+            
+            # Find the first comma at depth 0 to separate first param from rest
+            depth = 0
+            first_comma_idx = -1
+            for i, char in enumerate(params_content):
+                if char == '{':
+                    depth += 1
+                elif char == '}':
+                    depth -= 1
+                elif char == ',' and depth == 0:
+                    first_comma_idx = i
+                    break
+            
+            if first_comma_idx != -1:
+                # There are more parameters after the first one
+                remaining = params_content[first_comma_idx+1:]
+                formatted_remaining = self.format_type_name(remaining)
+                return f"{method_name}({formatted_remaining})"
+            else:
+                # No other parameters
+                return f"{method_name}()"
         
         # Not an extension method, format normally
         formatted_params = self.format_type_name(params)
@@ -170,16 +226,23 @@ class CSharpDocConverter:
         
         return result
     
-    def format_member_header(self, member_type, full_name):
+    def format_member_header(self, member_type, full_name, name_attr=None):
         """Format a member header for the markdown output."""
         if member_type == 'T':  # Type
             type_name = full_name.split('.')[-1]
             return f"## {self.format_type_name(type_name)}\n\n**Type**: `{self.format_type_name(full_name)}`"
         
         elif member_type == 'M':  # Method
-            signature = self.format_method_signature(full_name)
+            signature = self.format_method_signature(full_name, name_attr)
             formatted_full_name = self.format_full_method_name(full_name)
-            return f"### {self.format_type_name(signature)}\n\n**Method**: `{self.format_type_name(formatted_full_name)}`"
+            
+            # Check if this is an extension method
+            if name_attr and name_attr in self.extension_methods:
+                extended_type = self.extension_methods[name_attr]
+                formatted_type = self.format_type_name(extended_type)
+                return f"### {self.format_type_name(signature)}\n\n**Extends**: `{formatted_type}`\n\n**Method**: `{self.format_type_name(formatted_full_name)}`"
+            else:
+                return f"### {self.format_type_name(signature)}\n\n**Method**: `{self.format_type_name(formatted_full_name)}`"
         
         elif member_type == 'P':  # Property
             prop_name = full_name.split('.')[-1]
@@ -330,7 +393,7 @@ class CSharpDocConverter:
         markdown.append(f"*Generated from {Path(xml_file).name}*\n")
         
         # First pass: Build a lookup map for all members (including compiler-generated ones)
-        # This is needed for inheritdoc resolution
+        # This is needed for inheritdoc resolution and extension method detection
         members_elem = root.find('members')
         inheritdoc_lookup = {}
         
@@ -339,6 +402,28 @@ class CSharpDocConverter:
                 name_attr = member.get('name')
                 if name_attr:
                     inheritdoc_lookup[name_attr] = member
+            
+            # Build extension methods map by comparing parameter counts
+            for member in members_elem.findall('member'):
+                name_attr = member.get('name')
+                if not name_attr:
+                    continue
+                
+                # Check if this member has inheritdoc
+                inheritdoc = member.find('inheritdoc')
+                if inheritdoc is not None:
+                    cref = inheritdoc.get('cref', '')
+                    if cref and cref in inheritdoc_lookup:
+                        # Compare parameter counts
+                        inheritdoc_params = self.count_parameters(name_attr)
+                        referenced_params = self.count_parameters(cref)
+                        
+                        # If the inheritdoc member has one more parameter, it's an extension method
+                        if inheritdoc_params == referenced_params + 1:
+                            # Extract the first parameter type (the extended type)
+                            extended_type = self.extract_first_parameter_type(name_attr)
+                            if extended_type:
+                                self.extension_methods[name_attr] = extended_type
         
         # Second pass: Process members for output
         if members_elem is not None:
@@ -364,7 +449,7 @@ class CSharpDocConverter:
                     continue
                 
                 # Format the member header
-                header = self.format_member_header(member_type, full_name)
+                header = self.format_member_header(member_type, full_name, name_attr)
                 markdown.append(f"\n{header}\n")
                 
                 # Extract and add documentation (with inheritdoc support)
