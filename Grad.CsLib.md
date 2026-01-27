@@ -3,12 +3,79 @@
 *Generated from Grad.CsLib.xml*
 
 
-### AddNoAuth(Microsoft.AspNetCore.Builder.WebApplicationBuilder)
+## CsLibWeb
 
-**Method**: `Grad.CsLib.CsLibWeb.AddNoAuth(Microsoft.AspNetCore.Builder.WebApplicationBuilder)`
+**Type**: `Grad.CsLib.CsLibWeb`
 
-APIs that don't require authentication still need some form of authentication. This adds an insecure
- JWT Bearer authentication scheme.
+Provides extension methods for `Microsoft.AspNetCore.Builder.WebApplicationBuilder` to simplify common web application setup
+ based on Graduate College standards.
+
+---
+
+
+### AddSwagger(Microsoft.AspNetCore.Builder.WebApplicationBuilder,string[],string,string,string)
+
+**Method**: `Grad.CsLib.CsLibWeb.AddSwagger(Microsoft.AspNetCore.Builder.WebApplicationBuilder,string[],string,string,string)`
+
+Adds and configures Swagger documentation using FastEndpoints.
+
+**args**: Command line arguments to check for `--exportswaggerjson`.
+
+**name**: The name of the Swagger document.
+
+**version**: The version of the API.
+
+**title**: The title of the API.
+
+**Returns**: The `Microsoft.AspNetCore.Builder.WebApplicationBuilder` instance.
+
+---
+
+
+### AddCors(Microsoft.AspNetCore.Builder.WebApplicationBuilder)
+
+**Method**: `Grad.CsLib.CsLibWeb.AddCors(Microsoft.AspNetCore.Builder.WebApplicationBuilder)`
+
+Adds and configures CORS (Cross-Origin Resource Sharing) based on configuration.
+
+**Returns**: The `Microsoft.AspNetCore.Builder.WebApplicationBuilder` instance.
+
+---
+
+
+### AddEndpoints(Microsoft.AspNetCore.Builder.WebApplicationBuilder,System.Collections.Generic.List<System.Type>)
+
+**Method**: `Grad.CsLib.CsLibWeb.AddEndpoints(Microsoft.AspNetCore.Builder.WebApplicationBuilder,System.Collections.Generic.List<System.Type>)`
+
+Registers FastEndpoints with the provided discovered types and adds health checks.
+
+**discoveredTypes**: A list of types discovered by the source generator to be registered with FastEndpoints.
+
+**Returns**: The `Microsoft.AspNetCore.Builder.WebApplicationBuilder` instance.
+
+---
+
+
+### AddAuth(Microsoft.AspNetCore.Builder.WebApplicationBuilder)
+
+**Method**: `Grad.CsLib.CsLibWeb.AddAuth(Microsoft.AspNetCore.Builder.WebApplicationBuilder)`
+
+Adds and configures Microsoft Identity Web API authentication and authorization.
+
+**Returns**: The `Microsoft.AspNetCore.Builder.WebApplicationBuilder` instance.
+
+---
+
+
+### AddSerilog(Microsoft.AspNetCore.Builder.WebApplicationBuilder,Action<Serilog.LoggerConfiguration>)
+
+**Method**: `Grad.CsLib.CsLibWeb.AddSerilog(Microsoft.AspNetCore.Builder.WebApplicationBuilder,Action<Serilog.LoggerConfiguration>)`
+
+Adds and configures Serilog for logging.
+
+**configureLogger**: An optional action to further configure the `Serilog.LoggerConfiguration`.
+
+**Returns**: The `Microsoft.AspNetCore.Builder.WebApplicationBuilder` instance.
 
 ---
 
@@ -17,10 +84,11 @@ APIs that don't require authentication still need some form of authentication. T
 
 **Method**: `Grad.CsLib.CsLibWeb.BuildAndConfigureApp(Microsoft.AspNetCore.Builder.WebApplicationBuilder,Action<FastEndpoints.BindingOptions>)`
 
-Builds the WebApplication and configures middleware conditionally based on Add* calls.
- 
- Accepts an optional function to configure BindingOptions, which you would typically
- use to add source generated types.
+Builds the `Microsoft.AspNetCore.Builder.WebApplication` and configures middleware conditionally based on Add* calls.
+
+**binding**: An optional action to configure `FastEndpoints.BindingOptions`, typically used to add source generated types.
+
+**Returns**: The configured `Microsoft.AspNetCore.Builder.WebApplication` instance.
 
 ---
 

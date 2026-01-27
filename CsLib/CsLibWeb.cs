@@ -21,6 +21,10 @@ using Serilog.Formatting.Display;
 
 namespace Grad.CsLib;
 
+/// <summary>
+/// Provides extension methods for <see cref="WebApplicationBuilder"/> to simplify common web application setup
+/// based on Graduate College standards.
+/// </summary>
 public static class CsLibWeb
 {
     private const string SwaggerKey = "CsLibWeb:Swagger";
@@ -51,6 +55,14 @@ public static class CsLibWeb
 
     extension(WebApplicationBuilder builder)
     {
+        /// <summary>
+        /// Adds and configures Swagger documentation using FastEndpoints.
+        /// </summary>
+        /// <param name="args">Command line arguments to check for <c>--exportswaggerjson</c>.</param>
+        /// <param name="name">The name of the Swagger document.</param>
+        /// <param name="version">The version of the API.</param>
+        /// <param name="title">The title of the API.</param>
+        /// <returns>The <see cref="WebApplicationBuilder"/> instance.</returns>
         public WebApplicationBuilder AddSwagger(string[] args,
             string name,
             string version,
@@ -82,6 +94,10 @@ public static class CsLibWeb
             return builder;
         }
 
+        /// <summary>
+        /// Adds and configures CORS (Cross-Origin Resource Sharing) based on configuration.
+        /// </summary>
+        /// <returns>The <see cref="WebApplicationBuilder"/> instance.</returns>
         public WebApplicationBuilder AddCors()
         {
             var corsOptions = builder.Configuration.GetSection(Cors.SectionName).Get<Cors>()!;
@@ -103,6 +119,11 @@ public static class CsLibWeb
             return builder;
         }
 
+        /// <summary>
+        /// Registers FastEndpoints with the provided discovered types and adds health checks.
+        /// </summary>
+        /// <param name="discoveredTypes">A list of types discovered by the source generator to be registered with FastEndpoints.</param>
+        /// <returns>The <see cref="WebApplicationBuilder"/> instance.</returns>
         public WebApplicationBuilder AddEndpoints(List<Type> discoveredTypes)
         {
             builder.Services.AddFastEndpoints(o => { o.SourceGeneratorDiscoveredTypes.AddRange(discoveredTypes); })
@@ -114,6 +135,10 @@ public static class CsLibWeb
             return builder;
         }
 
+        /// <summary>
+        /// Adds and configures Microsoft Identity Web API authentication and authorization.
+        /// </summary>
+        /// <returns>The <see cref="WebApplicationBuilder"/> instance.</returns>
         public WebApplicationBuilder AddAuth()
         {
             builder.Services.AddAuthentication()
@@ -132,6 +157,11 @@ public static class CsLibWeb
             return builder;
         }
 
+        /// <summary>
+        /// Adds and configures Serilog for logging.
+        /// </summary>
+        /// <param name="configureLogger">An optional action to further configure the <see cref="LoggerConfiguration"/>.</param>
+        /// <returns>The <see cref="WebApplicationBuilder"/> instance.</returns>
         public WebApplicationBuilder AddSerilog(Action<LoggerConfiguration>? configureLogger = null)
         {
             builder.Services.AddSerilog(c =>
@@ -166,27 +196,10 @@ public static class CsLibWeb
         }
 
         /// <summary>
-        /// APIs that don't require authentication still need some form of authentication. This adds an insecure
-        /// JWT Bearer authentication scheme.
+        /// Builds the <see cref="WebApplication"/> and configures middleware conditionally based on Add* calls.
         /// </summary>
-        public WebApplicationBuilder AddNoAuth()
-        {
-            builder.Services
-                .AddAuthenticationJwtBearer(s => s.SigningKey = "this is totally insecure")
-                .AddAuthorization();
-
-            builder.Configuration[AuthKey] = "true";
-            LogJson("Auth added: Mode=NoAuth (insecure dev JWT)",
-                new { Mode = "NoAuth" });
-            return builder;
-        }
-
-        /// <summary>
-        /// Builds the WebApplication and configures middleware conditionally based on Add* calls.
-        ///
-        /// Accepts an optional function to configure BindingOptions, which you would typically
-        /// use to add source generated types.
-        /// </summary>
+        /// <param name="binding">An optional action to configure <see cref="BindingOptions"/>, typically used to add source generated types.</param>
+        /// <returns>The configured <see cref="WebApplication"/> instance.</returns>
         public WebApplication BuildAndConfigureApp(Action<BindingOptions>? binding = null)
         {
             var app = builder.Build();
@@ -245,30 +258,6 @@ public static class CsLibWeb
 
             if (builder.Configuration[AuthKey] == "true")
             {
-                logger.LogInformation("Enable authentication/authorization");
-                if (app.Environment.IsDevelopment())
-                {
-                    app.Use(async (context, next) =>
-                    {
-                        var authHeader = context.Request.Headers.Authorization.FirstOrDefault();
-                        if (authHeader != null &&
-                            authHeader.StartsWith("Bearer developer", StringComparison.OrdinalIgnoreCase))
-                        {
-                            var claims = new List<System.Security.Claims.Claim>
-                            {
-                                new(System.Security.Claims.ClaimTypes.Name, "Developer"),
-                                new(System.Security.Claims.ClaimTypes.Role, "Admin")
-                            };
-                            context.User =
-                                new System.Security.Claims.ClaimsPrincipal(
-                                    new System.Security.Claims.ClaimsIdentity(claims, "DeveloperToken"));
-                            logger.LogDebug("Injected developer principal");
-                        }
-
-                        await next();
-                    });
-                }
-
                 app.UseAuthentication();
                 app.UseAuthorization();
             }

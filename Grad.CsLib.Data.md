@@ -62,6 +62,8 @@ Page options for database queries.
 
 **PageSize**: The number of items per page.
 
+**SortBy**: The field to sort by.
+
 ---
 
 
@@ -75,93 +77,74 @@ Page options for database queries.
 
 **PageSize**: The number of items per page.
 
----
-
-
-## QueryableExtensions
-
-**Type**: `Grad.CsLib.Data.QueryableExtensions`
-
-Extension methods to perform Order By using strings
+**SortBy**: The field to sort by.
 
 ---
 
 
-### System.Linq.IQueryable<T>.OrderByPath(string)
+## SqlHelpers
 
-**Method**: `Grad.CsLib.Data.QueryableExtensions.OrderByPath(System.Linq.IQueryable<T>,string)`
+**Type**: `Grad.CsLib.Data.SqlHelpers`
 
-Orders an `System.Linq.IQueryable<T>` source based on a specified column path string.
- The column path can include multiple column names separated by commas,
- with optional '-' prefix for descending order.
+Provides utility methods for SQL query construction, sorting, and filtering.
 
-**columnPath**: A string representing the column path(s) to sort by.
- Columns are separated by commas, and a '-' prefix indicates descending order for a column.
-
-**Returns**: An `System.Linq.IOrderedQueryable<T>` that is ordered based on the column path string provided.
-
-**Throws T:Grad.CsLib.Data.InvalidParameterException**: Thrown when the column path is null, empty, or contains invalid fields.
+**Remarks**: Only use these in scenarios where the query is very dynamic. Otherwise, it's
+ recommended to write complete SQL queries directly for better clarity and maintainability.
 
 ---
 
 
-### System.Linq.IQueryable<T>.ApplyFilters(object,string[])
+### BuildOrderBy(T,System.Collections.Generic.Dictionary<string,string>,string,Grad.CsLib.Data.PageOptions)
 
-**Method**: `Grad.CsLib.Data.QueryableExtensions.ApplyFilters(System.Linq.IQueryable<T>,object,string[])`
+**Method**: `Grad.CsLib.Data.SqlHelpers.BuildOrderBy(T,System.Collections.Generic.Dictionary<string,string>,string,Grad.CsLib.Data.PageOptions)`
 
-Applies a set of filters to an `System.Linq.IQueryable<T>` source based on the specified filter object.
- Filters are derived from the properties of the filter object, where non-null, non-empty values
- indicate conditions for inclusion. String values are matched exactly, while enumerable string
- values are checked for containment. Boolean values determine the presence or absence of a field.
+Builds an ORDER BY clause based on a simplified string representation of sorting options,
+ typically sent from a web client.
 
-**filter**: An object containing properties used to filter the source. Each property name is matched
- to a corresponding property in the source type to form filtering conditions.
+**entity**: EF Core entity type for normalizing columns.
 
-**except**: A list of property names to exclude from the filtering process, even if they exist in the filter object.
+**mapping**: A dictionary mapping property names to entity field names.
 
-**Returns**: A filtered `System.Linq.IQueryable<T>` sequence, with conditions applied based on the filter object and exclusions.
+**defaultSort**: The default sorting order if no specific sorting is provided.
 
----
+**pageOptions**: The page options containing sorting information.
 
+**Returns**: The constructed ORDER BY clause.
 
-### System.Linq.IQueryable<T>.ApplySorting(Grad.CsLib.Data.PageOptions,System.Linq.Expressions.Expression<Func<T,object>>,System.Linq.Expressions.Expression<Func<T,object>>[])
-
-**Method**: `Grad.CsLib.Data.QueryableExtensions.ApplySorting(System.Linq.IQueryable<T>,Grad.CsLib.Data.PageOptions,System.Linq.Expressions.Expression<Func<T,object>>,System.Linq.Expressions.Expression<Func<T,object>>[])`
-
-Applies sorting to an `System.Linq.IQueryable<T>` source based on the provided `Grad.CsLib.Data.PageOptions`.
- If the `SortBy` property in the `pageOptions` is specified,
- sorting is performed using the column(s) defined in it. If no `SortBy` is provided,
- the default and optional sorting expressions are applied.
-
-**pageOptions**: The `Grad.CsLib.Data.PageOptions` object containing sorting preferences, including the column(s)
- to sort by.
-
-**defaultSort**: An optional default sorting expression to use when no `SortBy` is defined in the
- `pageOptions`.
-
-**thenBySort**: Optional additional sorting expressions to be applied in sequence after the default sorting.
-
-**Returns**: An `System.Linq.IQueryable<T>` that is sorted based on the specified `pageOptions`,
- or using the provided `defaultSort` and `thenBySort` parameters if
- `SortBy` is not specified.
+**Throws T:Grad.CsLib.Data.InvalidParameterException**: Thrown if the sorting parameter is invalid.
 
 ---
 
 
-### System.Linq.IQueryable<T>.ApplyPaging(Grad.CsLib.Data.PageOptions,System.Linq.Expressions.Expression<Func<T,object>>,System.Linq.Expressions.Expression<Func<T,object>>[])
+### BuildPaging(Grad.CsLib.Data.PageOptions,Dapper.DynamicParameters)
 
-**Method**: `Grad.CsLib.Data.QueryableExtensions.ApplyPaging(System.Linq.IQueryable<T>,Grad.CsLib.Data.PageOptions,System.Linq.Expressions.Expression<Func<T,object>>,System.Linq.Expressions.Expression<Func<T,object>>[])`
+**Method**: `Grad.CsLib.Data.SqlHelpers.BuildPaging(Grad.CsLib.Data.PageOptions,Dapper.DynamicParameters)`
 
-Applies paging to the provided `System.Linq.IQueryable<T>` source based on the given page options.
- If the page options are null, the source is returned as is. Otherwise, the results are paginated
- according to the specified offset and page size.
+Builds a paging clause based on the provided page options.
 
-**pageOptions**: An instance of `Grad.CsLib.Data.PageOptions` containing the offset and page size for pagination.
+**pageOptions**: The page options to use for paging.
 
-**defaultSort**: An optional default sort expression to apply if sorting is not explicitly specified in the page options.
+**parameters**: The dynamic parameters to add paging parameters to.
 
-**thenBySort**: Additional sort expressions to apply for secondary sorting, in the order they are provided, if applicable.
+**Returns**: The SQL paging clause or an empty string if no paging options are provided.
 
-**Returns**: A `System.Linq.IQueryable<T>` that contains the paginated result based on the provided page options.
+---
+
+
+### AppendFilters(System.Text.StringBuilder,Dapper.DynamicParameters,System.Collections.Generic.IEnumerable<System.ValueTuple<string,object>>,bool)
+
+**Method**: `Grad.CsLib.Data.SqlHelpers.AppendFilters(System.Text.StringBuilder,Dapper.DynamicParameters,System.Collections.Generic.IEnumerable<System.ValueTuple<string,object>>,bool)`
+
+Appends filter conditions to a SQL WHERE clause based on the specified column-value pairs.
+ Handles string, boolean, and collection-based filters dynamically, adding the appropriate SQL syntax.
+
+**where**: The StringBuilder object to which the filter conditions will be appended.
+
+**parameters**: The dynamic parameters object for managing SQL parameterized values.
+
+**filters**: A collection of tuples representing the column names and corresponding filter values.
+
+**booleanNullCheck**: Indicates whether to add IS NULL/IS NOT NULL conditions for boolean values when they are null.
+ Defaults to true.
 
 ---
