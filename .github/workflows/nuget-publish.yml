@@ -8,6 +8,7 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    environment: nuget
     permissions:
       contents: write
       packages: write
@@ -45,9 +46,38 @@ jobs:
           dotnet pack CsLib.Data/CsLib.Data.csproj --configuration Release --no-build /p:Version=${{ steps.version.outputs.version }} --output ./packages
           dotnet pack CsLib.Tool/CsLib.Tool.csproj --configuration Release --no-build /p:Version=${{ steps.version.outputs.version }} --output ./packages
 
-      - name: Publish to GitHub Packages
-        run: dotnet nuget push ./packages/*.nupkg --source "github" --api-key ${{ secrets.GITHUB_TOKEN }} --skip-duplicate
-
+      - name: Compute effective NuGet source
+        id: nuget
+        shell: bash
+        run: |
+          if [ -n "${{ inputs.nuget-source }}" ]; then
+            echo "source=${{ inputs.nuget-source }}" >> "$GITHUB_OUTPUT"
+          elif [ -n "${{ inputs.trusted-publishing }}" ]; then
+            echo "source=https://api.nuget.org/v3/index.json" >> "$GITHUB_OUTPUT"
+          else
+            echo "source=https://nuget.pkg.github.com/graduatecollege/index.json" >> "$GITHUB_OUTPUT"
+          fi
+  
+      - name: Authenticate to nuget.org (Trusted Publishing)
+        if: inputs.trusted-publishing != ''
+        uses: NuGet/login@v1
+        with:
+          user: ${{ inputs.trusted-publishing-user }}
+  
+      - name: Publish NuGet package
+        shell: bash
+        run: |
+          if [ -n "${{ inputs.trusted-publishing }}" ]; then
+          dotnet nuget push "./packages/*.nupkg" \
+           --source "${{ steps.nuget.outputs.source }}" \
+           --api-key "${NUGET_AUTH_TOKEN}" \
+           --skip-duplicate
+          else
+          dotnet nuget push "./packages/*.nupkg" \
+           --source "${{ steps.nuget.outputs.source }}" \
+           --api-key "${{ secrets.GITHUB_TOKEN }}" \
+           --skip-duplicate
+          fi
       - name: Create GitHub Release
         uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # ratchet:softprops/action-gh-release@v2
         with:
