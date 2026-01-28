@@ -63,6 +63,18 @@ async Task HandleModels(string? connectionString)
             return;
         }
 
+        var dbName = File.ReadLines(connectionFile)
+            .Select(l => l.Trim())
+            .Where(l => l.StartsWith("Database=", StringComparison.OrdinalIgnoreCase))
+            .Select(l => l.Substring("Database=".Length))
+            .FirstOrDefault();
+
+        if (string.IsNullOrEmpty(dbName))
+        {
+            Console.WriteLine($"Error: 'Database=' not found in {connectionFile}");
+            return;
+        }
+
         var baseConnection = string.Join("",
             File.ReadLines(connectionFile)
                 .Select(l => l.Trim())
@@ -72,13 +84,13 @@ async Task HandleModels(string? connectionString)
         var password = Environment.GetEnvironmentVariable("DB_PASSWORD");
         if (string.IsNullOrEmpty(password))
         {
-            password = GetPasswordFromKeyring("certification", "database");
+            password = GetPasswordFromKeyring(dbName, "database");
             if (string.IsNullOrEmpty(password))
             {
-                Console.Write("Password not found in keyring. Please enter it: ");
+                Console.Write($"Password not found in keyring for database '{dbName}'. Please enter it: ");
                 password = ReadPassword();
                 Console.WriteLine();
-                SetPasswordInKeyring("certification", "database", password);
+                SetPasswordInKeyring(dbName, "database", password);
             }
         }
 
@@ -104,13 +116,32 @@ async Task HandleRebuildModels()
     const string containerName = "sqlserver_rebuild_models";
     const string saPassword = "Password123!";
     const int port = 14335;
-    const string dbName = "Certification";
+
+    var connectionFile = Path.Combine(Directory.GetCurrentDirectory(), ".connection-string");
+    if (!File.Exists(connectionFile))
+    {
+        Console.WriteLine($"Error: Connection string file not found at {connectionFile}");
+        return;
+    }
+
+    var dbName = File.ReadLines(connectionFile)
+        .Select(l => l.Trim())
+        .Where(l => l.StartsWith("Database=", StringComparison.OrdinalIgnoreCase))
+        .Select(l => l.Substring("Database=".Length))
+        .FirstOrDefault();
+
+    if (string.IsNullOrEmpty(dbName))
+    {
+        Console.WriteLine($"Error: 'Database=' not found in {connectionFile}");
+        return;
+    }
+
     var containerConnStr =
         $"Server=localhost,{port};Database={dbName};User Id=sa;Password={saPassword};TrustServerCertificate=True";
 
     try
     {
-        Console.WriteLine("Starting SQL Server container...");
+        Console.WriteLine($"Starting SQL Server container for database {dbName}...");
         await RunProcess("docker",
             $"run -e \"ACCEPT_EULA=Y\" -e \"MSSQL_SA_PASSWORD={saPassword}\" -p \"{port}:1433\" --name \"{containerName}\" -d mcr.microsoft.com/mssql/server:2022-latest");
 

@@ -1,0 +1,3 @@
+Server=example.org
+Database=Example
+Encrypt=True
