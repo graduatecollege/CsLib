@@ -3,10 +3,11 @@
 Graduate College C# common library for web application APIs
 and other related projects.
 
-For API definitions, see:
+For details, see the package READMEs:
 
-- [Grad.CsLib.md](./Grad.CsLib.md)
-- [Grad.CsLib.Data.md](./Grad.CsLib.Data.md)
+- [Grad.CsLib](./CsLib/README.md)
+- [Grad.CsLib.Data](./CsLib.Data/README.md)
+- [Grad.CsLib.Tool](./CsLib.Tool/README.md)
 
 ## Requirements
 
