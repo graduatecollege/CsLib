@@ -10,6 +10,7 @@
         <Title>Grad CsLib Data</Title>
         <Authors>marvel@illinois.edu</Authors>
         <Description>Database utilities for Graduate College C# web applications.</Description>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <Copyright>University of Illinois Board of Trustees</Copyright>
         <Version>2.0.1</Version>
         <NoWarn>CS1591,CS8618,NU5104</NoWarn>
