@@ -9,14 +9,17 @@ namespace Grad.CsLib.Data;
 public class DatabaseMigrator
 {
     private readonly string _connectionString;
+    private readonly Assembly _assembly;
 
     /// <summary>
     /// Handles database migrations using DbUp and records the migration history into a schema called `DbUp`, which must exist.
     /// </summary>
     /// <param name="connectionString">The connection string to the database.</param>
-    public DatabaseMigrator(string connectionString)
+    /// <param name="assembly">The assembly containing the SQL scripts to migrate. Defaults to the calling assembly.</param>
+    public DatabaseMigrator(string connectionString, Assembly? assembly = null)
     {
         _connectionString = connectionString;
+        _assembly = assembly ?? Assembly.GetCallingAssembly();
     }
 
     /// <summary>
@@ -32,7 +35,7 @@ public class DatabaseMigrator
                     .SqlDatabase(_connectionString)
                     .WithTransactionPerScript()
                     .JournalToSqlTable("DbUp", "SchemaVersions")
-                    .WithScriptsEmbeddedInAssembly(Assembly.GetCallingAssembly())
+                    .WithScriptsEmbeddedInAssembly(_assembly)
                     .LogToConsole()
                     .Build();
 
