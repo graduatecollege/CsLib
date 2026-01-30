@@ -45,6 +45,73 @@ Dapper type handler for DateOnly.
 ---
 
 
+## DbConnectionFactory
+
+**Type**: `Grad.CsLib.Data.DbConnectionFactory`
+
+A factory for creating and managing SQL database connections asynchronously.
+
+**Remarks**: Register the factory as a singleton in DI:
+ 
+ services.AddSingleton<IDbConnectionFactory>(s => new DbConnectionFactory(builder.Configuration.GetConnectionString("DbName")!));
+ 
+ 
+ Inject it to your service:
+ 
+ public class MyService(IDbConnectionFactory connectionFactory)
+ 
+ 
+ And then use it in a method:
+ 
+ await using var connection = await connectionFactory.ConnectAsync();
+
+---
+
+
+### DbConnectionFactory(string)
+
+**Method**: `Grad.CsLib.Data.DbConnectionFactory.#ctor(string)`
+
+A factory for creating and managing SQL database connections asynchronously.
+
+**Remarks**: Register the factory as a singleton in DI:
+ 
+ services.AddSingleton<IDbConnectionFactory>(s => new DbConnectionFactory(builder.Configuration.GetConnectionString("DbName")!));
+ 
+ 
+ Inject it to your service:
+ 
+ public class MyService(IDbConnectionFactory connectionFactory)
+ 
+ 
+ And then use it in a method:
+ 
+ await using var connection = await connectionFactory.ConnectAsync();
+
+---
+
+
+## IDbConnectionFactory
+
+**Type**: `Grad.CsLib.Data.IDbConnectionFactory`
+
+Defines a factory for creating and managing database connections asynchronously.
+
+---
+
+
+### ConnectAsync()
+
+**Method**: `Grad.CsLib.Data.IDbConnectionFactory.ConnectAsync`
+
+Creates a new database connection.
+
+**Remarks**: The caller is responsible for closing the connection. The recommended
+ pattern is to use `await using` to ensure the connection is closed.
+
+---
+
+
 ## InvalidParameterException
 
 **Type**: `Grad.CsLib.Data.InvalidParameterException`
