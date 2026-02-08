@@ -26,8 +26,6 @@ public static class ClientErrorLoggingExtensions
         if (string.IsNullOrWhiteSpace(path))
             throw new ArgumentException("Path cannot be null or empty", nameof(path));
 
-        var logger = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("ClientErrorLogging");
-        
         app.MapPost(path, async (ClientErrorLog req, ILogger<ClientErrorLogger> endpointLogger) =>
         {
             var validationResult = new ClientErrorLogValidator().Validate(req);
@@ -49,13 +47,14 @@ public static class ClientErrorLoggingExtensions
                 req.Context ?? new Dictionary<string, object?>()
             );
 
-            return Results.Ok();
+            return Results.Ok(new { });
         })
         .AllowAnonymous()
         .WithName("ClientErrorLog")
         .WithSummary("Log client-side errors")
         .WithDescription("Accepts client-side error logs for server-side logging and analysis");
 
+        var logger = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("ClientErrorLogging");
         logger.LogInformation("Client error logging endpoint mapped to {Path}", path);
         return app;
     }
