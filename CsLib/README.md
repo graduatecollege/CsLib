@@ -32,6 +32,7 @@ using ExampleData;
 using ExampleServer;
 using FastEndpoints.ClientGen.Kiota;
 using Grad.CsLib;
+using Grad.CsLib.ClientErrorLogging;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -56,6 +57,9 @@ try
 {
     var app = builder.BuildAndConfigureApp(b => b.ReflectionCache.AddFromExampleData().AddFromExampleServer());
 
+    // Optional: Add client-side error logging endpoint
+    app.MapClientErrorLogging("/api/client-errors");
+
     // This is only run with the --exportswaggerjson option
     await app.ExportSwaggerJsonAndExitAsync("ExampleServer", "../spec");
 
@@ -70,4 +74,19 @@ finally
     Log.CloseAndFlush();
 }
 ```
+
+## Client-Side Error Logging
+
+CsLib provides a convenient endpoint for logging client-side errors. This allows frontend applications to send error information to the backend for centralized logging and analysis.
+
+For detailed documentation, see [ClientErrorLogging/README.md](./ClientErrorLogging/README.md).
+
+Quick example:
+
+```csharp
+// In Program.cs, after building the app
+app.MapClientErrorLogging("/api/client-errors");
+```
+
+This creates an anonymous POST endpoint that accepts client errors with validation for error type, message, stack trace, and contextual data. All errors are logged to Serilog for collection by Splunk.
 
