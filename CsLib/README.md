@@ -11,6 +11,9 @@ This package is very opinionated, as it's intended for Graduate College API proj
       but not the client libraries.
 - Authentication is through Entra.
 
+For local development scenarios where involving Entra isn't desirable, CsLib also provides an opt-in combined
+authentication mode that accepts a simple `Api-Key` header (see `AddAuthAzureAdOrDevApiKey()`).
+
 ## Requirements
 
 - .NET Core 10
@@ -32,6 +35,7 @@ using ExampleData;
 using ExampleServer;
 using FastEndpoints.ClientGen.Kiota;
 using Grad.CsLib;
+using Grad.CsLib.ClientErrorLogging;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -56,6 +60,9 @@ try
 {
     var app = builder.BuildAndConfigureApp(b => b.ReflectionCache.AddFromExampleData().AddFromExampleServer());
 
+    // Optional: Add client-side error logging endpoint
+    app.MapClientErrorLogging("/api/client-errors");
+
     // This is only run with the --exportswaggerjson option
     await app.ExportSwaggerJsonAndExitAsync("ExampleServer", "../spec");
 
@@ -70,4 +77,43 @@ finally
     Log.CloseAndFlush();
 }
 ```
+
+### Development API key (optional)
+
+If you want to allow a development-only API key as an alternative to Entra, replace `AddAuth()` with:
+
+```csharp
+builder
+    .AddSerilog()
+    .AddCors()
+    .AddAuthAzureAdOrDevApiKey();
+```
+
+Configure the expected key in configuration (for example via `appsettings.Development.json`):
+
+```json
+{
+  "CsLibWeb": {
+    "DevApiKey": "your-dev-key"
+  }
+}
+```
+
+When the request includes the `Api-Key` header, API key authentication is used; otherwise CsLib falls back to
+Entra bearer authentication.
+
+## Client-Side Error Logging
+
+CsLib provides a convenient endpoint for logging client-side errors. This allows frontend applications to send error information to the backend for centralized logging and analysis.
+
+For detailed documentation, see [ClientErrorLogging/README.md](./ClientErrorLogging/README.md).
+
+Quick example:
+
+```csharp
+// In Program.cs, after building the app
+app.MapClientErrorLogging("/api/client-errors");
+```
+
+This creates an anonymous POST endpoint that accepts client errors with validation for error type, message, stack trace, and contextual data. All errors are logged to Serilog for collection by Splunk.
 
