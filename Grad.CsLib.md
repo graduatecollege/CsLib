@@ -3,6 +3,48 @@
 *Generated from Grad.CsLib.xml*
 
 
+## ClientErrorLog
+
+**Type**: `Grad.CsLib.ClientErrorLogging.ClientErrorLog`
+
+Represents a client-side error log entry.
+
+---
+
+
+## ClientErrorLoggingExtensions
+
+**Type**: `Grad.CsLib.ClientErrorLogging.ClientErrorLoggingExtensions`
+
+Provides extension methods for `Microsoft.AspNetCore.Builder.WebApplication` to add client-side error logging endpoints.
+
+---
+
+
+### MapClientErrorLogging(string)
+
+**Extends**: `Microsoft.AspNetCore.Builder.WebApplication`
+
+**Method**: `Grad.CsLib.ClientErrorLogging.ClientErrorLoggingExtensions.MapClientErrorLogging(Microsoft.AspNetCore.Builder.WebApplication,string)`
+
+Maps a client-side error logging endpoint to the specified path.
+ The endpoint accepts POST requests with error type, message, stacktrace, and contextual data,
+ and logs them to Serilog for collection by Splunk.
+
+**path**: The path where the endpoint should be mapped (e.g., "/api/client-errors").
+
+---
+
+
+## ClientErrorLogValidator
+
+**Type**: `Grad.CsLib.ClientErrorLogging.ClientErrorLogValidator`
+
+Validator for `Grad.CsLib.ClientErrorLogging.ClientErrorLog` ensuring length limits and data constraints.
+
+---
+
+
 ## CsLibWeb
 
 **Type**: `Grad.CsLib.CsLibWeb`
@@ -69,6 +111,22 @@ Registers FastEndpoints with the provided discovered types and adds health check
 **Method**: `Grad.CsLib.CsLibWeb.AddAuth(Microsoft.AspNetCore.Builder.WebApplicationBuilder)`
 
 Adds and configures Microsoft Identity Web API authentication and authorization.
+
+**Returns**: The `Microsoft.AspNetCore.Builder.WebApplicationBuilder` instance.
+
+---
+
+
+### AddAuthAzureAdOrDevApiKey(string)
+
+**Extends**: `Microsoft.AspNetCore.Builder.WebApplicationBuilder`
+
+**Method**: `Grad.CsLib.CsLibWeb.AddAuthAzureAdOrDevApiKey(Microsoft.AspNetCore.Builder.WebApplicationBuilder,string)`
+
+Adds a combined authentication scheme which uses a development API key if the `Api-Key` header is present;
+ otherwise it falls back to Azure AD (Entra) bearer authentication.
+
+**expectedApiKeyConfigKey**: Configuration key containing the expected API key value.
 
 **Returns**: The `Microsoft.AspNetCore.Builder.WebApplicationBuilder` instance.
 

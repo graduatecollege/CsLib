@@ -3,8 +3,11 @@ using System.Text.Json.Serialization;
 using FastEndpoints;
 using FastEndpoints.Security;
 using FastEndpoints.Swagger;
+using Grad.CsLib.Auth;
 using Grad.CsLib.Errors;
 using Grad.CsLib.Options;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -154,6 +157,55 @@ public static class CsLibWeb
             var clientId = builder.Configuration["AzureAd:ClientId"];
             LogJson($"Auth added: Mode=AzureAd, ClientId={clientId}",
                 new { Mode = "AzureAd", ClientId = clientId });
+            return builder;
+        }
+
+        /// <summary>
+        /// Adds a combined authentication scheme which uses a development API key if the <c>Api-Key</c> header is present;
+        /// otherwise it falls back to Azure AD (Entra) bearer authentication.
+        /// </summary>
+        /// <param name="expectedApiKeyConfigKey">Configuration key containing the expected API key value.</param>
+        /// <returns>The <see cref="WebApplicationBuilder"/> instance.</returns>
+        public WebApplicationBuilder AddAuthAzureAdOrDevApiKey(string expectedApiKeyConfigKey = "CsLibWeb:DevApiKey")
+        {
+            const string combinedScheme = "AzureAd_Or_DevApiKey";
+
+            var auth = builder.Services.AddAuthentication(o =>
+            {
+                o.DefaultScheme = combinedScheme;
+                o.DefaultAuthenticateScheme = combinedScheme;
+                o.DefaultChallengeScheme = combinedScheme;
+            });
+
+            auth.AddMicrosoftIdentityWebApi(options =>
+                {
+                    builder.Configuration.Bind("AzureAd", options);
+                    options.TokenValidationParameters.NameClaimType = "name";
+                },
+                options => { builder.Configuration.Bind("AzureAd", options); });
+
+            auth.AddScheme<DevApiKeyAuthenticationOptions, DevApiKeyAuthenticationHandler>(
+                DevApiKeyDefaults.AuthenticationScheme,
+                o =>
+                {
+                    o.ExpectedApiKey = builder.Configuration[expectedApiKeyConfigKey];
+                    o.HeaderName = DevApiKeyDefaults.DefaultHeaderName;
+                });
+
+            auth.AddPolicyScheme(combinedScheme, combinedScheme, o =>
+            {
+                o.ForwardDefaultSelector = ctx =>
+                    ctx.Request.Headers.ContainsKey(DevApiKeyDefaults.DefaultHeaderName)
+                        ? DevApiKeyDefaults.AuthenticationScheme
+                        : JwtBearerDefaults.AuthenticationScheme;
+            });
+
+            builder.Services.AddAuthorization();
+            builder.Configuration[AuthKey] = "true";
+
+            var clientId = builder.Configuration["AzureAd:ClientId"];
+            LogJson($"Auth added: Mode=AzureAdOrDevApiKey, ClientId={clientId}",
+                new { Mode = "AzureAdOrDevApiKey", ClientId = clientId, ApiKeyConfigKey = expectedApiKeyConfigKey });
             return builder;
         }
 
