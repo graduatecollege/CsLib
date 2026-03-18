@@ -148,6 +148,27 @@ Adds and configures Serilog for logging.
 ---
 
 
+### AddCorrelationId(string)
+
+**Extends**: `Microsoft.AspNetCore.Builder.WebApplicationBuilder`
+
+**Method**: `Grad.CsLib.CsLibWeb.AddCorrelationId(Microsoft.AspNetCore.Builder.WebApplicationBuilder,string)`
+
+Adds support for correlation IDs. The specified header is read from each incoming request and the value
+ is pushed onto Serilog's `Serilog.Context.LogContext` so that it is included in all log entries for that
+ request. If the header is absent a new GUID is generated. The correlation ID is also written back to
+ the response under the same header name.
+ 
+ `Grad.CsLib.CsLibWeb.AddSerilog(Microsoft.AspNetCore.Builder.WebApplicationBuilder,Action<Serilog.LoggerConfiguration>)` must be called before `Grad.CsLib.CsLibWeb.BuildAndConfigureApp(Microsoft.AspNetCore.Builder.WebApplicationBuilder,Action<FastEndpoints.BindingOptions>)` when correlation IDs
+ are used.
+
+**headerName**: The HTTP header name used to carry the correlation ID (default: `X-Correlation-ID`).
+
+**Returns**: The `Microsoft.AspNetCore.Builder.WebApplicationBuilder` instance.
+
+---
+
+
 ### BuildAndConfigureApp(Action<FastEndpoints.BindingOptions>)
 
 **Extends**: `Microsoft.AspNetCore.Builder.WebApplicationBuilder`
