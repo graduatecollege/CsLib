@@ -6,7 +6,6 @@ using FastEndpoints.Swagger;
 using Grad.CsLib.Auth;
 using Grad.CsLib.Errors;
 using Grad.CsLib.Options;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -17,10 +16,10 @@ using Microsoft.Identity.Web;
 using NSwag;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using Serilog.Context;
 using Serilog.Events;
 using Serilog.Filters;
 using Serilog.Formatting.Compact;
-using Serilog.Formatting.Display;
 
 namespace Grad.CsLib;
 
@@ -35,6 +34,8 @@ public static class CsLibWeb
     private const string EndpointsKey = "CsLibWeb:Endpoints";
     private const string AuthKey = "CsLibWeb:Auth";
     private const string SerilogKey = "CsLibWeb:Serilog";
+    private const string CorrelationIdKey = "CsLibWeb:CorrelationId";
+    private const string CorrelationIdHeaderKey = "CsLibWeb:CorrelationIdHeader";
 
     private static void LogJson(string message, object? properties = null)
     {
@@ -93,7 +94,13 @@ public static class CsLibWeb
 
             builder.Configuration[SwaggerKey] = "true";
             LogJson($"Swagger added: Name={name}, Version={version}, Title={title}, ExportMode={exportSwagger}",
-                new { name, version, title, exportSwagger });
+                new
+                {
+                    name,
+                    version,
+                    title,
+                    exportSwagger
+                });
             return builder;
         }
 
@@ -116,7 +123,8 @@ public static class CsLibWeb
                 $"CORS added: Origins=[{string.Join(',', corsOptions.AllowedOrigins)}] Methods=[{string.Join(',', corsOptions.AllowedMethods)}] Headers=[{string.Join(',', corsOptions.AllowedHeaders)}]",
                 new
                 {
-                    Origins = corsOptions.AllowedOrigins, Methods = corsOptions.AllowedMethods,
+                    Origins = corsOptions.AllowedOrigins,
+                    Methods = corsOptions.AllowedMethods,
                     Headers = corsOptions.AllowedHeaders
                 });
             return builder;
@@ -192,20 +200,27 @@ public static class CsLibWeb
                     o.HeaderName = DevApiKeyDefaults.DefaultHeaderName;
                 });
 
-            auth.AddPolicyScheme(combinedScheme, combinedScheme, o =>
-            {
-                o.ForwardDefaultSelector = ctx =>
-                    ctx.Request.Headers.ContainsKey(DevApiKeyDefaults.DefaultHeaderName)
-                        ? DevApiKeyDefaults.AuthenticationScheme
-                        : JwtBearerDefaults.AuthenticationScheme;
-            });
+            auth.AddPolicyScheme(combinedScheme,
+                combinedScheme,
+                o =>
+                {
+                    o.ForwardDefaultSelector = ctx =>
+                        ctx.Request.Headers.ContainsKey(DevApiKeyDefaults.DefaultHeaderName)
+                            ? DevApiKeyDefaults.AuthenticationScheme
+                            : JwtBearerDefaults.AuthenticationScheme;
+                });
 
             builder.Services.AddAuthorization();
             builder.Configuration[AuthKey] = "true";
 
             var clientId = builder.Configuration["AzureAd:ClientId"];
             LogJson($"Auth added: Mode=AzureAdOrDevApiKey, ClientId={clientId}",
-                new { Mode = "AzureAdOrDevApiKey", ClientId = clientId, ApiKeyConfigKey = expectedApiKeyConfigKey });
+                new
+                {
+                    Mode = "AzureAdOrDevApiKey",
+                    ClientId = clientId,
+                    ApiKeyConfigKey = expectedApiKeyConfigKey
+                });
             return builder;
         }
 
@@ -248,18 +263,59 @@ public static class CsLibWeb
         }
 
         /// <summary>
+        /// Adds support for correlation IDs. The specified header is read from each incoming request and the value
+        /// is pushed onto Serilog's <see cref="LogContext"/> so that it is included in all log entries for that
+        /// request. If the header is absent a new GUID is generated. The correlation ID is also written back to
+        /// the response under the same header name.
+        /// <para>
+        /// <see cref="AddSerilog"/> must be called before <see cref="BuildAndConfigureApp"/> when correlation IDs
+        /// are used.
+        /// </para>
+        /// </summary>
+        /// <param name="headerName">The HTTP header name used to carry the correlation ID (default: <c>X-Correlation-ID</c>).</param>
+        /// <returns>The <see cref="WebApplicationBuilder"/> instance.</returns>
+        public WebApplicationBuilder AddCorrelationId(string headerName = "X-Correlation-ID")
+        {
+            builder.Configuration[CorrelationIdKey] = "true";
+            builder.Configuration[CorrelationIdHeaderKey] = headerName;
+            LogJson($"Correlation ID added: HeaderName={headerName}", new { HeaderName = headerName });
+            return builder;
+        }
+
+        /// <summary>
         /// Builds the <see cref="WebApplication"/> and configures middleware conditionally based on Add* calls.
         /// </summary>
         /// <param name="binding">An optional action to configure <see cref="BindingOptions"/>, typically used to add source generated types.</param>
         /// <returns>The configured <see cref="WebApplication"/> instance.</returns>
         public WebApplication BuildAndConfigureApp(Action<BindingOptions>? binding = null)
         {
+            if (builder.Configuration[CorrelationIdKey] == "true" && builder.Configuration[SerilogKey] != "true")
+            {
+                throw new InvalidOperationException(
+                    "Serilog must be configured when using correlation IDs. Call AddSerilog() before BuildAndConfigureApp().");
+            }
+
             var app = builder.Build();
 
             var logger = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("CsLibWeb");
 
             CancellationTokenSource cancellation = new();
             app.Lifetime.ApplicationStopping.Register(() => { cancellation.Cancel(); });
+
+            if (builder.Configuration[CorrelationIdKey] == "true")
+            {
+                var headerName = builder.Configuration[CorrelationIdHeaderKey] ?? "X-Correlation-ID";
+                app.Use(async (context, next) =>
+                {
+                    var correlationId = context.Request.Headers[headerName].FirstOrDefault() ??
+                                        Guid.NewGuid().ToString("D");
+                    using (LogContext.PushProperty("CorrelationId", correlationId))
+                    {
+                        context.Response.Headers[headerName] = correlationId;
+                        await next(context);
+                    }
+                });
+            }
 
             if (builder.Configuration[SerilogKey] == "true")
             {
