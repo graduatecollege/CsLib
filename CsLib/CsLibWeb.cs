@@ -113,16 +113,27 @@ public static class CsLibWeb
             var corsOptions = builder.Configuration.GetSection(Cors.SectionName).Get<Cors>()!;
             builder.Services.AddCors(options =>
             {
-                options.AddDefaultPolicy(policy => policy.WithOrigins(corsOptions.AllowedOrigins)
-                    .WithMethods(corsOptions.AllowedMethods)
-                    .WithHeaders(corsOptions.AllowedHeaders));
+                options.AddDefaultPolicy(policy =>
+                {
+                    if (builder.Environment.IsDevelopment() || corsOptions.AllowAny)
+                    {
+                        policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+                    }
+                    else
+                    {
+                        policy.WithOrigins(corsOptions.AllowedOrigins)
+                            .WithMethods(corsOptions.AllowedMethods)
+                            .WithHeaders(corsOptions.AllowedHeaders);
+                    }
+                });
             });
 
             builder.Configuration[CorsKey] = "true";
             LogJson(
-                $"CORS added: Origins=[{string.Join(',', corsOptions.AllowedOrigins)}] Methods=[{string.Join(',', corsOptions.AllowedMethods)}] Headers=[{string.Join(',', corsOptions.AllowedHeaders)}]",
+                $"CORS added: AllowAny={corsOptions.AllowAny} Origins=[{string.Join(',', corsOptions.AllowedOrigins)}] Methods=[{string.Join(',', corsOptions.AllowedMethods)}] Headers=[{string.Join(',', corsOptions.AllowedHeaders)}]",
                 new
                 {
+                    corsOptions.AllowAny,
                     Origins = corsOptions.AllowedOrigins,
                     Methods = corsOptions.AllowedMethods,
                     Headers = corsOptions.AllowedHeaders
@@ -343,15 +354,11 @@ public static class CsLibWeb
 
             if (builder.Configuration[CorsKey] == "true")
             {
-                logger.LogInformation("Enable CORS ({Mode})", app.Environment.IsDevelopment() ? "AllowAny" : "Policy");
-                if (app.Environment.IsDevelopment())
-                {
-                    app.UseCors(b => b.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
-                }
-                else
-                {
-                    app.UseCors();
-                }
+                var corsOptions = builder.Configuration.GetSection(Cors.SectionName).Get<Cors>()!;
+                var isAllowAny = app.Environment.IsDevelopment() || corsOptions.AllowAny;
+
+                logger.LogInformation("Enable CORS ({Mode})", isAllowAny ? "AllowAny" : "Policy");
+                app.UseCors();
             }
 
             if (!app.Environment.IsDevelopment())
