@@ -7,5 +7,6 @@ public class Cors
     public string[] AllowedOrigins { get; set; } = null!;
     public string[] AllowedMethods { get; set; } = null!;
     public string[] AllowedHeaders { get; set; } = null!;
+    public bool AllowAny { get; set; }
 }
 
